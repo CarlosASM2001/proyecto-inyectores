@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function(Blueprint $table){
+        Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->decimal('amount', 10, 2);
             $table->string('currency', 55);
-            $table->string('reference', 100);
+            $table->decimal('reference',12,5);
             $table->string('payment_method', 100);
             $table->text('description');
 

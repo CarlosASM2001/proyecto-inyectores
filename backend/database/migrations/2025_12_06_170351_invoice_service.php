@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoice_service', function(Blueprint $table){
+        Schema::create('invoice_service', function (Blueprint $table) {
             $table->unsignedBigInteger('invoice_id');
             $table->unsignedBigInteger('service_id');
 
@@ -22,6 +22,7 @@ return new class extends Migration
 
             $table->decimal('unitary_price', 10, 2);
             $table->decimal('subtotal', 10, 2);
+            $table->integer('quantity');
             $table->timestamps();
         });
     }

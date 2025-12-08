@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoices', function(Blueprint $table){
+        Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             //Los check para almacenar los valores de tipo y estado se haran a nivel de aplicacion

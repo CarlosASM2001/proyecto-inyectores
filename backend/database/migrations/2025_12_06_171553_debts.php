@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('debts', function(Blueprint $table){
+        Schema::create('debts', function (Blueprint $table) {
             $table->id();
             $table->decimal('pending_balance', 10, 2);
 
-            $table->unsignedBigInteger('client_id')->unique();
+            $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('invoice_id');
+
+            $table->unique(['client_id', 'invoice_id']);
+
             $table->foreign('client_id')->references('id')->on('clients')->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('invoice_id')->references('id')->on('invoices')->onUpdate('cascade')->onDelete('cascade');
-            
+
             $table->timestamps();
         });
     }
