@@ -5,10 +5,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\DebtController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\ServiceController; 
+use App\Http\Controllers\Api\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +27,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // 🔒 RUTAS PROTEGIDAS POR SANCTUM (Requieren autenticación)
 // --------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // RUTAS DE AUTENTICACIÓN PROTEGIDAS
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']); // Obtener el usuario autenticado
@@ -38,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('products', ProductController::class);
     Route::apiResource('services', ServiceController::class);
     Route::apiResource('payments', PaymentController::class);
+    Route::apiResource('debt', DebtController::class);
     Route::apiResource('invoices', InvoiceController::class);
 
 });

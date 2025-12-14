@@ -12,7 +12,9 @@ class Debt extends Model
     protected $table = "debts";
 
     public $fillable = [
-        "pending_balance"
+        "pending_balance",
+        "client_id",
+        "invoice_id"
     ];
 
     public function Client(): BelongsTo

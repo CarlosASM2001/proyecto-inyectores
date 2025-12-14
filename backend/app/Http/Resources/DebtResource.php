@@ -18,7 +18,7 @@ class DebtResource extends JsonResource
         return [
             'id' => $this->id,
             'client_id' => $this->client_id,
-            'service_id' => $this->service_id,
+            'invoice_id' => $this->invoice_id,
             'pending_balance' => $this->pending_balance,
             'created_at' => $this->created_at?->format('Y-m-d'),
         ];
