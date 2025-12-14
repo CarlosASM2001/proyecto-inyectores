@@ -6,6 +6,8 @@ use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Store\StoreClientRequest;
+use App\Http\Requests\Update\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
 
 class ClientController extends Controller
@@ -21,9 +23,9 @@ class ClientController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $client = Client::create($request->valitadted());
+        $client = Client::create($request->validated());
 
         return new ClientResource($client);
     }
@@ -39,7 +41,7 @@ class ClientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client)
     {
         $client->update($request->validated());
 
