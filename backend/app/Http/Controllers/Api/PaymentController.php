@@ -6,8 +6,8 @@ use App\Models\Payment;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
-use App\Http\Requests\StorePaymentRequest;
-use App\Http\Requests\UpdatePaymentRequest;
+use App\Http\Requests\Store\StorePaymentRequest;
+use App\Http\Requests\Update\UpdatePaymentRequest;
 
 class PaymentController extends Controller
 {
@@ -51,7 +51,7 @@ class PaymentController extends Controller
     public function destroy(Payment $payment)
     {
         $payment->delete();
-        
+
         return response()->json([
             'message' => 'El pago ha sido eliminado correctamente',
             Response::HTTP_NO_CONTENT

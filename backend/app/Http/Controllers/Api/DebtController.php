@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Models\Debt;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Store\StoreDebtRequest;
+use App\Http\Requests\Update\UpdateDebtRequest;
 use App\Http\Resources\DebtResource;
-use App\Http\Requests\StoreDebtRequest;
-use App\Http\Requests\UpdateDebtRequest;
+
 
 class DebtController extends Controller
 {
@@ -51,7 +52,7 @@ class DebtController extends Controller
     public function destroy(Debt $debt)
     {
         $debt->delete();
-        
+
         return response()->json([
             'message' => 'La deuda ha sido eliminada correctamente',
             Response::HTTP_NO_CONTENT

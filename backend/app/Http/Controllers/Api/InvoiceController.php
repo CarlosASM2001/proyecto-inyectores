@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\Invoice;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Store\StoreInvoiceRequest;
+use App\Http\Requests\Update\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
-use App\Http\Requests\StoreInvoiceRequest;
-use App\Http\Requests\UpdateInvoiceRequest;
 
 class InvoiceController extends Controller
 {
