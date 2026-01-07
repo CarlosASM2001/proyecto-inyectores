@@ -1,34 +1,41 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
+import api from '../service/api_Authorization'
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [user, setUser] = useState(() => {
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
+  });
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
 
-    // Cada vez que el token cambie, lo actualizamos en axios para futuras peticiones
-    // (Esto lo haremos más adelante con interceptores, pero tenlo en mente)
+  // login ahora hace la petición al backend
+    const login = async (email, password) => {
+        const res = await api.post('/login', { email, password });
 
-    const login = (userData, userToken) => {
+        const userData = res.data.data;
+        const token = res.data.access_token;
+
         setUser(userData);
-        setToken(userToken);
-        localStorage.setItem('token', userToken);
+        setToken(token);
+
+        localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
     };
 
-    const logout = () => {
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-    };
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
 
-    return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Este es un "Hook personalizado" para que usar el contexto sea más fácil
 export const useAuth = () => useContext(AuthContext);

@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Auth/LoginPage';
 import MainLayout from './layouts/MainLayout';
+import ProductsPage from './pages/Inventory/ProductsPage';
 
 // Asegúrate de importar tus páginas (o crea archivos temporales si no existen)
 const DashboardPage = () => <div className="p-4 text-2xl font-bold">Bienvenido al Dashboard</div>;
 const ClientsPage = () => <div className="p-4 text-2xl font-bold">Gestión de Clientes</div>;
-const ProductsPage = () => <div className="p-4 text-2xl font-bold">Inventario de Productos</div>;
+// const ProductsPage = () => <div className="p-4 text-2xl font-bold">Inventario de Productos</div>;
 
 function App() {
   return (

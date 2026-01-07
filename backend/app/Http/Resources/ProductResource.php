@@ -20,7 +20,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'price' => $this->price,
-            'actual_stock' => $this->actual_stocl,
+            'actual_stock' => $this->actual_stock,
             'min_stock' => $this->min_stock,
             'created_at' => $this->created_at?->format('Y-m-d'),
         ];

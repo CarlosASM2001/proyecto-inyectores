@@ -1,27 +1,20 @@
 import axios from "axios";
 
-const api = function (Token) {
-    
-  if (  Token == "" || Token == null) {
-    return axios.create({
-      baseURL: "",
-      withCredentials: true,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
-  } else {
-    return axios.create({
-      baseURL: "",
-      withCredentials: true,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${Token}`,
-      },
-    });
+const api = axios.create({
+  baseURL: '/api', // proxy de Vite
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+  withCredentials: false // 🔴 CLAVE
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
 export default api;
