@@ -2,8 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Client;
 use App\Models\User;
+use App\Models\Client;
+use App\Models\RegisterClose;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,6 +29,20 @@ class InvoiceFactory extends Factory
             'total_value' => $this->faker->randomFloat(2, 100, 10000),
             'client_id' => Client::factory(),
             'user_id' => User::factory(),
+            'register_close_id' => null,
         ];
+    }
+
+    public function closed(): static
+    {
+        return $this->state(function (array $attributes){
+            $close = RegisterClose::factory()->create();
+        
+            return [
+                'status' => 'Pagada',
+                'register_close_id' => $close->id,
+                'date' => $close->date,
+            ];
+        });
     }
 }

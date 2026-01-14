@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Invoice;
+use App\Models\RegisterClose;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,6 +29,20 @@ class PaymentFactory extends Factory
             'payment_method' => $this->faker->randomElement($methods),
             'description' => $this->faker->sentence(),
             'invoice_id' => Invoice::factory(),
+            'register_close_id' => null,
         ];
+    }
+
+    public function closed(): static
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'register_close_id' => RegisterClose::factory(),
+                
+                'date' => function (array $attributes) {
+                    return RegisterClose::find($attributes['register_close_id'])->date;
+                },
+            ];
+        });
     }
 }

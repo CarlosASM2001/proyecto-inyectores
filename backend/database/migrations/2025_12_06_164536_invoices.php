@@ -25,6 +25,8 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('client_id')->references('id')->on('clients')->onUpdate('cascade')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('register_close_id')->nullable(true);
+            $table->foreign('register_close_id')->references('id')->on('register_close')->onDelete('set null');
         });
     }
 

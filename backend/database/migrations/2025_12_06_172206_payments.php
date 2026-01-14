@@ -18,10 +18,12 @@ return new class extends Migration
             $table->string('currency', 55);
             $table->decimal('reference',12,5);
             $table->string('payment_method', 100);
-            $table->text('description');
+            $table->text('description')->nullable(true);
 
             $table->unsignedBigInteger('invoice_id');
             $table->foreign('invoice_id')->references('id')->on('invoices')->onUpdate('cascade')->onDelete('cascade');
+            $table->unsignedBigInteger('register_close_id')->nullable(true);
+            $table->foreign('register_close_id')->references('id')->on('register_close')->onDelete('set null');
 
             $table->timestamps();
         });

@@ -19,7 +19,8 @@ class Invoice extends Model
         "status",
         "total_value",
         "client_id",
-        "user_id"
+        "user_id",
+        'register_close_id'
     ];
 
     public function Products(): BelongsToMany
@@ -54,5 +55,10 @@ class Invoice extends Model
     public function User(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function RegisterClose() : BelongsTo
+    {
+        return $this->belongsTo(RegisterClose::class);
     }
 }

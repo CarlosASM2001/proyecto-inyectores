@@ -18,11 +18,17 @@ class Payment extends Model
         "reference",
         "payment_method",
         "description",
-        "invoice_id"
+        "invoice_id",
+        'register_close_id'
     ];
 
     public function Invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function RegisterClose(): BelongsTo
+    {
+        return $this->belongsTo(RegisterClose::class);
     }
 }
