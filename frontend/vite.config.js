@@ -9,7 +9,7 @@ export default defineConfig({
     // ⬇️ Enmascara las peticiones al back como si vinieran del mismo front ⬇️
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8001',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
         // Opcional: si necesitas ver en consola qué está pasando
@@ -26,7 +26,7 @@ export default defineConfig({
         },
       },
       '/sanctum': {
-        target: 'http://127.0.0.1:8001',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
       }
