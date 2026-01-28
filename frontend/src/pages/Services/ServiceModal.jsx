@@ -1,28 +1,20 @@
 import { useState, useEffect } from "react";
 import api from "../../service/api_Authorization";
+import { X, Save, Wrench } from "lucide-react";
 
-export default function ServiceModal({
-  onClose,
-  onSuccess,
-  serviceData = null,
-}) {
-  // Estado inicial del formulario
+export default function ServiceModal({ onClose, onSuccess, serviceData = null }) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    base_price: "",
+    name: "", description: "", base_price: ""
   });
-
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Efecto para cargar datos si estamos en modo EDICIÓN
   useEffect(() => {
     if (serviceData) {
       setFormData({
         name: serviceData.name || "",
         description: serviceData.description || "",
-        base_price: serviceData.price || "",
+        base_price: serviceData.base_price || "",
       });
     }
   }, [serviceData]);
@@ -31,94 +23,73 @@ export default function ServiceModal({
     e.preventDefault();
     setSaving(true);
     setErrors({});
-
     try {
-      if (serviceData) {
-        // MODO EDICIÓN
-        await api.put(`/services/${serviceData.id}`, formData);
-      } else {
-        // MODO CREACIÓN
-        await api.post("/services", formData);
-      }
-      onSuccess(); // Refresca la tabla y cierra el modal
+      if (serviceData) await api.put(`/services/${serviceData.id}`, formData);
+      else await api.post("/services", formData);
+      onSuccess();
     } catch (err) {
-      if (err.response?.status === 422) {
-        // Capturar validaciones de Laravel
-        setErrors(err.response.data.errors);
-      } else {
-        alert(err.response?.data?.message || "Error al procesar la solicitud");
-      }
-    } finally {
-      setSaving(false);
-    }
+      if (err.response?.status === 422) setErrors(err.response.data.errors);
+      else alert("Error: " + (err.response?.data?.message || "No se pudo guardar"));
+    } finally { setSaving(false); }
   };
 
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 font-bold focus:border-workshop-red focus:ring-4 focus:ring-red-500/10 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal";
+
   return (
-    <div>
-      <div>
-        {/* Cabecera dinámica */}
-        <div>
-          <h3>{serviceData ? "🛠️ Editar Servicio" : "📦 Nuevo Servicio"}</h3>
-          <button onClick={onClose}>
-            <span>&times;</span>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        
+        <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-workshop-dark flex items-center justify-center text-white">
+              <Wrench size={20} />
+            </div>
+            <h3 className="font-black tracking-tighter text-gray-900 uppercase">
+              {serviceData ? "Editar Trabajo" : "Nuevo Servicio"}
+            </h3>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* Nombre */}
+        <form onSubmit={handleSubmit} className="p-8 space-y-5">
           <div>
-            <label>Nombre del Servicio</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Limpieza de inyectores"
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nombre del Servicio</label>
+            <input 
+              type="text" required value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className={inputClass} placeholder="Ej. Calibración Electrónica"
             />
-            {errors.name && <p>{errors.name[0]}</p>}
+            {errors.name && <p className="mt-1 text-xs font-bold text-red-500">{errors.name[0]}</p>}
           </div>
 
-          {/* Descripción */}
           <div>
-            <label>Descripción (Opcional)</label>
-            <textarea
-              rows="2"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Detalles adicionales..."
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Descripción</label>
+            <textarea 
+              rows="3" value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className={inputClass} placeholder="Detalles de lo que incluye el servicio..."
             />
           </div>
 
-          
-            {/* Precio */}
-            <div>
-              <label>Precio ($)</label>
-              <input
-                type="number"
-                step="0.01"
-                required
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, base_price: e.target.value })
-                }
-              />
-            </div>
-           
-          {/* Botones de acción */}
           <div>
-            <button type="button" onClick={onClose}>
+            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Precio Base ($)</label>
+            <input 
+              type="number" step="0.01" required value={formData.base_price}
+              onChange={(e) => setFormData({ ...formData, base_price: e.target.value})}
+              className={inputClass}
+            />
+          </div>
+
+          <div className="pt-4 flex gap-3">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
               Cancelar
             </button>
-            <button type="submit" disabled={saving}>
-              {saving
-                ? "Procesando..."
-                : serviceData
-                ? "Actualizar Cambios"
-                : "Guardar Servicio"}
+            <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-workshop-dark text-white font-black text-xs uppercase tracking-widest hover:bg-workshop-red transition-all shadow-lg disabled:opacity-50">
+              <Save size={18} />
+              {saving ? "..." : "GUARDAR"}
             </button>
           </div>
         </form>

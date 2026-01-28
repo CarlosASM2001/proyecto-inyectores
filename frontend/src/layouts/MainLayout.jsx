@@ -7,8 +7,6 @@ import Sidebar from "../components/Sidebar";
 export default function MainLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
-  // State to control mobile menu
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
@@ -17,8 +15,8 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
-      {/* SIDEBAR: Passes the state to handle open/close */}
+    // h-screen asegura que el layout no crezca más que la pantalla
+    <div className="flex h-screen bg-gray-50 overflow-hidden"> 
       <Sidebar 
         user={user} 
         onLogout={handleLogout} 
@@ -26,25 +24,24 @@ export default function MainLayout() {
         setIsOpen={setIsSidebarOpen} 
       />
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Contenedor derecho: Debe tener su propio scroll */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden"> 
         
-        {/* TOP HEADER */}
-        <header className="md:hidden h-16 bg-workshop-dark border-b border-gray-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
-          <div className="flex items-center gap-4">
-            {/* MOBILE MENU BUTTON (Hidden on Desktop) */}
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              <Menu size={24} />
-            </button>
-          </div>
-
+        {/* Header Móvil */}
+        <header className="md:hidden flex-none bg-workshop-dark p-4 flex items-center justify-between shadow-lg z-30">
+          <h1 className="text-white font-black tracking-tighter italic">
+            INJECT<span className="text-workshop-red">PRO</span>
+          </h1>
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <Menu size={24} />
+          </button>
         </header>
-
-        {/* PAGE CONTENT */}
-        <main className="p-4 md:p-8">
+        
+        {/* Área de contenido con scroll independiente */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

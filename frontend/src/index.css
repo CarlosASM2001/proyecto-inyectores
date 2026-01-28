@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
-/* If you added the custom theme I mentioned earlier, it should look like this */
 @theme {
   --color-workshop-red: #D93D31;
   --color-workshop-dark: #0D0D0D;
+}
+
+/* Add this to ensure parents don't break sticky */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  /* Ensure no parent has overflow: hidden or auto if you want sticky to work on the window */
 }
 
 :root {
