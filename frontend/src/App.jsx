@@ -12,8 +12,7 @@ import ServicesPage from "./pages/Services/ServicesPage";
 import InvoicesPage from "./pages/Invoices/InvoicesPage";
 import RegisterClosePage from "./pages/RegisterClose/RegisterClosePage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-const DashboardPage = () => <div>Bienvenido al Dashboard</div>;
+import DashboardPage from "./pages/Dashboard/DashboardPage";
 
 function App() {
   return (
