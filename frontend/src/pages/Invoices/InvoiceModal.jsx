@@ -7,7 +7,7 @@ export default function InvoiceModal({ onClose, onSuccess, invoiceData = null })
 
   const [clients, setClients] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [_errors, setErrors] = useState({});
 
   useEffect(() => {
     const loadClients = async () => {

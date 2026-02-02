@@ -71,7 +71,17 @@ return (
         {/* Footer / User Profile */}
         <div className="p-4 flex-none border-t border-white/5 bg-workshop-dark/50">
           <div className="flex items-center gap-3 px-2 mb-4">
-             {/* ... (tu código de perfil de usuario) ... */}
+            <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/60">
+              <UserCircle size={20} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                Sesión
+              </div>
+              <div className="text-xs font-black text-white truncate italic">
+                {user?.name ?? user?.email ?? "Usuario"}
+              </div>
+            </div>
           </div>
           
           <button

@@ -10,7 +10,7 @@ export default function RegisterCloseModal({ onClose, onSuccess, registerCloseDa
     description: "",
   });
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [_errors, setErrors] = useState({});
 
   useEffect(() => {
     if (registerCloseData) {

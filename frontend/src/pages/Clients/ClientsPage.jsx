@@ -6,7 +6,7 @@ import { Trash2, Edit, UserPlus, Search, Phone, CreditCard } from "lucide-react"
 export default function ClientesPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [_error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
 

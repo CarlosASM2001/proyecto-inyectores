@@ -6,7 +6,7 @@ import { Trash2, Edit, Wallet, TrendingUp, Calendar, Search, Coins } from "lucid
 export default function RegisterClosePage() {
   const [registerCloses, setRegisterCloses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [_error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRegisterClose, setSelectedRegisterClose] = useState(null);
 
