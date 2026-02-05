@@ -17,6 +17,7 @@ return new class extends Migration
             //Los check para almacenar los valores de tipo y estado se haran a nivel de aplicacion
             $table->string('type', 100);
             $table->string('status', 100);
+            //Precios anclados en pesos
             $table->decimal('total_value', 10, 2);
 
             $table->timestamps();

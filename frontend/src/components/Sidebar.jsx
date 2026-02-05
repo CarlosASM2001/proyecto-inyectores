@@ -10,6 +10,9 @@ import {
   UserCircle,
   Calculator,
   X,
+  LayoutDashboard, Users, Package, Wrench,
+  FileText, LogOut, UserCircle, Calculator,
+  X, BanknoteArrowDown
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
@@ -33,6 +36,7 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
       icon: <FileText size={20} />,
     },
     { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
+    { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
   ];
 
   return (

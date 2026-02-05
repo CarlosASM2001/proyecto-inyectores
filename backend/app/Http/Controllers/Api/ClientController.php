@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\StoreClientRequest;
 use App\Http\Requests\Update\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
+use App\Models\Debt;
 
 class ClientController extends Controller
 {
@@ -60,4 +61,11 @@ class ClientController extends Controller
             Response::HTTP_NO_CONTENT
         ]);
     }
+
+    public function clientsInDebt()
+    {
+        $clients = Client::has('debts')->withSum('debts as total_debt', 'pending_balance')->orderBy('total_debt', 'desc')->with('debts')->get();
+
+        return ClientResource::collection($clients);
+    } 
 }
