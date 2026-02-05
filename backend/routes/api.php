@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\RegisterCloseController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,24 +19,36 @@ use App\Http\Controllers\Api\ServiceController;
 |--------------------------------------------------------------------------
 */
 // --------------------------------------------------------------------------
-// RUTAS PÚBLICAS 
+// RUTAS PÚBLICAS
 // --------------------------------------------------------------------------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
 // --------------------------------------------------------------------------
-// RUTAS PRIVADAS 
+// RUTAS PRIVADAS
 // --------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'user']); 
+    Route::get('/user', [AuthController::class, 'user']);
 
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('products', ProductController::class);
+    Route::post("/products/Like", [ProductController::class, 'indexLike']);
     Route::apiResource('services', ServiceController::class);
+    Route::post("/services/Like", [ServiceController::class, 'indexLike']);
     Route::apiResource('payments', PaymentController::class);
     Route::apiResource('debt', DebtController::class);
     Route::apiResource('invoices', InvoiceController::class);
     Route::apiResource('registerClose', RegisterCloseController::class);
+
+    // RUTAS DE CONFIGURACIONES
+    Route::get('/settings', [SettingController::class, 'index']);
+    Route::post('/settings', [SettingController::class, 'store']);
+    Route::get('/settings/{key}', [SettingController::class, 'showByKey']);
+    Route::put('/settings/{key}', [SettingController::class, 'updateByKey']);
+    Route::patch('/settings/{key}', [SettingController::class, 'updateByKey']);
+    Route::delete('/settings/{key}', [SettingController::class, 'destroyByKey']);
+    Route::post('/settings/bulk', [SettingController::class, 'bulk']);
+    Route::get('/settings/exchange-rates', [SettingController::class, 'getExchangeRates']);
 });

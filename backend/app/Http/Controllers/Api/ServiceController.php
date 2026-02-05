@@ -20,6 +20,11 @@ class ServiceController extends Controller
         return ServiceResource::collection(Service::all());
     }
 
+    public function indexLike(Request $request)
+    {
+        return ServiceResource::collection(Service::where('name', 'LIKE', '%' . $request->Seach . '%')->take(10)->get());
+    }
+
     /**
      * Store a newly created resource in storage.
      */
