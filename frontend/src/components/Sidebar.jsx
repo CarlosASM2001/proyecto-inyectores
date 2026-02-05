@@ -1,15 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Wrench,
-  FileText,
-  LogOut,
-  UserCircle,
-  Calculator,
-  X,
   LayoutDashboard, Users, Package, Wrench,
   FileText, LogOut, UserCircle, Calculator,
   X, BanknoteArrowDown
