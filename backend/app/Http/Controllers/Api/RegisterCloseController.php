@@ -25,7 +25,7 @@ class RegisterCloseController extends Controller
     public function store(StoreRegisterCloseRequest $request)
     {
         $data = $request->validated();
-        $data['final_amount'] = $data['COP_amount'] + $data['USD_amount'];
+        $data['final_amount'] = $data['COP_amount'] + $data['USD_amount'] + $data['VES_amount'];
         $data['user_id'] = $request->user()->id;
 
         $registerClose = RegisterClose::create($data);
@@ -47,7 +47,7 @@ class RegisterCloseController extends Controller
     public function update(UpdateRegisterCloseRequest $request, RegisterClose $registerClose)
     {
         $data = $request->validated();
-        $data['final_amount'] = $data['COP_amount'] + $data['USD_amount'];
+        $data['final_amount'] = $data['COP_amount'] + $data['USD_amount'] + $data['VES_amount'];
         
         $registerClose->update($data);
 

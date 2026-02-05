@@ -58,4 +58,13 @@ class DebtController extends Controller
             Response::HTTP_NO_CONTENT
         ]);
     }
+
+    public function totalDebt()
+    {
+        $total_amount = Debt::sum('pending_balance');
+
+        return response()->json([
+            'total_debt' => $total_amount
+        ]);
+    }
 }

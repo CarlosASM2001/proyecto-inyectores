@@ -2,7 +2,8 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, Wrench,
-  FileText, LogOut, UserCircle, Calculator, X
+  FileText, LogOut, UserCircle, Calculator,
+  X, BanknoteArrowDown
 } from "lucide-react";
 
 export default function Sidebar({ user, onLogout, isOpen, setIsOpen }) {
@@ -13,6 +14,7 @@ export default function Sidebar({ user, onLogout, isOpen, setIsOpen }) {
     { name: "Servicios", path: "/services", icon: <Wrench size={20} /> },
     { name: "Facturación", path: "/invoices", icon: <FileText size={20} /> },
     { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
+    { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
   ];
 
 return (

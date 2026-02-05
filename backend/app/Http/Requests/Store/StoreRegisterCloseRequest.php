@@ -25,8 +25,8 @@ class StoreRegisterCloseRequest extends FormRequest
             'date' => ['required', 'date'],
             'COP_amount' => ['required', 'numeric', 'min:0'],
             'USD_amount' => ['required', 'numeric', 'min:0'],
+            'VES_amount' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000']
-            
         ];
     }
 }

@@ -21,6 +21,7 @@ class RegisterCloseResource extends JsonResource
             'final_amount' => $this->final_amount,
             'COP_amount' => $this->COP_amount,
             'USD_amount' => $this->USD_amount,
+            'VES_amount' => $this->VES_amount,
             'description' => $this->description
         ];
     }

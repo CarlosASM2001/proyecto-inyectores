@@ -17,6 +17,7 @@ return new class extends Migration
             $table->decimal('final_amount', 12, 2);
             $table->decimal('COP_amount', 10, 2);
             $table->decimal('USD_amount', 10, 2);
+            $table->decimal('VES_amount', 10, 2);
             $table->text('description')->nullable(true);
 
             $table->unsignedBigInteger('user_id');

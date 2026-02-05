@@ -13,6 +13,7 @@ import InvoicesPage from "./pages/Invoices/InvoicesPage";
 import RegisterClosePage from "./pages/RegisterClose/RegisterClosePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import DebtsPage from "./pages/Debts/DebtsPage";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="registerClose" element={<RegisterClosePage />} />
+            <Route path="debts" element={<DebtsPage />} />
           </Route>
         </Route>
 

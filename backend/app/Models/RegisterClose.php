@@ -17,6 +17,7 @@ class RegisterClose extends Model
         'final_amount',
         'COP_amount',
         'USD_amount',
+        'VES_amount',
         'description',
         'user_id'
     ];
@@ -26,6 +27,7 @@ class RegisterClose extends Model
         'final_amount' => 'decimal:2',
         'COP_amount' => 'decimal:2',
         'USD_amount' => 'decimal:2',
+        'VES_amount' => 'decimal:2',
     ];
 
     public function User() : BelongsTo
