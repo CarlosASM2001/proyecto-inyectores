@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             InvoiceSeeder::class,
+            SettingSeeder::class,
         ]);
     }
 }
