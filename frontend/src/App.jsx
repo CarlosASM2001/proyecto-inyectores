@@ -14,6 +14,7 @@ import RegisterClosePage from "./pages/RegisterClose/RegisterClosePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Billinvoices_Page from "./pages/Invoices/Billinvoices_Page";
+import DebtsPage from "./pages/Debts/DebtsPage";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="invoices" element={<InvoicesPage />} />
             <Route path="invoices_Bill" element={<Billinvoices_Page />} />
             <Route path="registerClose" element={<RegisterClosePage />} />
+            <Route path="debts" element={<DebtsPage />} />
           </Route>
         </Route>
 

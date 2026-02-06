@@ -18,6 +18,7 @@ export default function RegisterCloseModal({ onClose, onSuccess, registerCloseDa
         date: registerCloseData.date || "",
         COP_amount: registerCloseData.COP_amount ?? "",
         USD_amount: registerCloseData.USD_amount ?? "",
+        VES_amount: registerCloseData.VES_amount ?? "",
         description: registerCloseData.description || "",
       });
     }
@@ -27,7 +28,7 @@ export default function RegisterCloseModal({ onClose, onSuccess, registerCloseDa
     e.preventDefault();
     setSaving(true);
     try {
-      const payload = { ...formData, COP_amount: Number(formData.COP_amount), USD_amount: Number(formData.USD_amount) };
+      const payload = { ...formData, COP_amount: Number(formData.COP_amount), USD_amount: Number(formData.USD_amount), VES_amount: Number(formData.VES_amount) };
       if (registerCloseData?.id) await api.put(`/registerClose/${registerCloseData.id}`, payload);
       else await api.post(`/registerClose`, payload);
       onSuccess?.();
@@ -62,6 +63,10 @@ export default function RegisterCloseModal({ onClose, onSuccess, registerCloseDa
             <div>
               <label className="block text-[10px] font-black text-gray-400 uppercase mb-1">Efectivo USD</label>
               <input type="number" required className={inputClass} placeholder="0" value={formData.USD_amount} onChange={(e) => setFormData({ ...formData, USD_amount: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-gray-400 uppercase mb-1">Efectivo VES</label>
+              <input type="number" required className={inputClass} placeholder="0" value={formData.VES_amount} onChange={(e) => setFormData({ ...formData, VES_amount: e.target.value })} />
             </div>
           </div>
 

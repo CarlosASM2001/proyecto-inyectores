@@ -34,8 +34,10 @@ export default function RegisterClosePage() {
     return rcDate.getMonth() === currentMonth && rcDate.getFullYear() === currentYear;
   });
 
+  console.log(thisMonthRegisters);
   const totalCOP = thisMonthRegisters.reduce((acc, rc) => acc + Number(rc.COP_amount || 0), 0);
   const totalUSD = thisMonthRegisters.reduce((acc, rc) => acc + Number(rc.USD_amount || 0), 0);
+  const totalVES = thisMonthRegisters.reduce((acc, rc) => acc + Number(rc.VES_amount || 0), 0);
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este registro de caja?")) return;
@@ -91,6 +93,17 @@ export default function RegisterClosePage() {
             <h4 className="text-xl font-black text-amber-600 leading-none">${totalUSD.toLocaleString()}</h4>
           </div>
         </div>
+
+                <div className="min-w-[280px] snap-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5">
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+            <TrendingUp size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Bolivares</p>
+            <h4 className="text-xl font-black text-amber-600 leading-none">${totalVES.toLocaleString()}</h4>
+          </div>
+        </div>
+
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
@@ -125,6 +138,10 @@ export default function RegisterClosePage() {
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Efectivo USD</p>
                 <p className="text-lg font-black text-amber-600">${Number(rc.USD_amount).toLocaleString()}</p>
               </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Efectivo VES</p>
+                <p className="text-lg font-black text-amber-600">${Number(rc.VES_amount).toLocaleString()}</p>
+              </div>
               <div className="col-span-2">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Notas del Cierre</p>
                 <p className="text-xs text-gray-500 italic">{rc.description || "Sin observaciones adicionales."}</p>
@@ -143,6 +160,7 @@ export default function RegisterClosePage() {
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha</th>
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Monto COP</th>
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Monto USD</th>
+                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Monto VES</th>
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest italic text-workshop-red">Observaciones</th>
                 <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Acciones</th>
               </tr>
@@ -153,6 +171,7 @@ export default function RegisterClosePage() {
                   <td className="px-6 py-4 text-sm text-gray-900">{rc.date}</td>
                   <td className="px-6 py-4 text-sm text-green-700 font-black">${Number(rc.COP_amount).toLocaleString()}</td>
                   <td className="px-6 py-4 text-sm text-amber-700 font-black">${Number(rc.USD_amount).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-sm text-amber-700 font-black">${Number(rc.VES_amount).toLocaleString()}</td>
                   <td className="px-6 py-4 text-xs text-gray-500 max-w-[250px] truncate">{rc.description || "—"}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-50 group-hover:opacity-100 transition-opacity">

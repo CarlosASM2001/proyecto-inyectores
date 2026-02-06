@@ -18,18 +18,16 @@ class PaymentFactory extends Factory
      */
     public function definition(): array
     {
-        $methods = ['Efectivo', 'Transferencia', 'Tarjeta Débito', 'Tarjeta Crédito', 'Pago Móvil'];
-        $currencies = ['USD', 'VES', 'EUR'];
+        $currencies = ['USD', 'VES', 'COP'];
 
         return [
             'date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'amount' => $this->faker->randomFloat(2, 50, 5000),
             'currency' => $this->faker->randomElement($currencies),
             'reference' => $this->faker->randomFloat(5, 30, 50), // Tasa de cambio USD a VES (30-50 Bs por USD)
-            'payment_method' => $this->faker->randomElement($methods),
             'description' => $this->faker->sentence(),
             'invoice_id' => Invoice::factory(),
-            'register_close_id' => null,
+            'register_close_id' => RegisterClose::factory(),
         ];
     }
 

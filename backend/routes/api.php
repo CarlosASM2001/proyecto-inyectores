@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
+    //Rutas de CRUD
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('products', ProductController::class);
     Route::post("/products/Like", [ProductController::class, 'indexLike']);
@@ -45,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('invoices', InvoiceController::class);
     Route::apiResource('registerClose', RegisterCloseController::class);
 
+
     // RUTAS DE CONFIGURACIONES
     Route::get('/settings', [SettingController::class, 'index']);
     Route::post('/settings', [SettingController::class, 'store']);
@@ -54,4 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/settings/{key}', [SettingController::class, 'destroyByKey']);
     Route::post('/settings/bulk', [SettingController::class, 'bulk']);
     Route::get('/settings/exchange-rates', [SettingController::class, 'getExchangeRates']);
+
+    //Rutas de calculos 
+    Route::get('clientsInDebt', [ClientController::class, 'clientsInDebt']);
+    Route::get('totalDebt', [DebtController::class, 'totalDebt']);
+
 });

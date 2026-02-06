@@ -20,7 +20,7 @@ class Client extends Model
 
     public function debts(): HasMany
     {
-        return $this->hasMany(Debt::class);
+        return $this->hasMany(Debt::class, 'client_id');
     }
 
     public function invoices(): HasMany

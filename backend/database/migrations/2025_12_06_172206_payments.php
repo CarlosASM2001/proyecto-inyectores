@@ -17,7 +17,6 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('currency', 55);
             $table->decimal('reference',12,5);
-            $table->string('payment_method', 100);
             $table->text('description')->nullable(true);
 
             $table->unsignedBigInteger('invoice_id');

@@ -20,6 +20,7 @@ class ClientResource extends JsonResource
             'name' => $this->name,
             'phone' => $this->phone,
             'cedula' => $this->cedula,
+            'total_debt' => $this->total_debt ?? 0,
             'created_at' => $this->created_at?->format('Y-m-d'),
         ];
     }
