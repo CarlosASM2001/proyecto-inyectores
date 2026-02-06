@@ -3,11 +3,15 @@ import api from "../../service/api_Authorization";
 import { Contrast } from "lucide-react";
 
 function Billinvoices_Page() {
+  const T_Ser = "Service";
+  const T_Pro = "Product";
   const TipoMoneda_Array = ["Pesos", "Dolares", "Bolivares"];
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
   const TipoMoneda_Array_Sim = ["P$", "$", "Bs"];
+
   const [Producto, setProducto] = useState([]);
   const [ProductoSelect, setProductoSelect] = useState();
+  const [ProductoService, setProductoService] = useState([]);
   const [Typing, setTyping] = useState(false);
   const [ProductoSelet, setProductoSelet] = useState([]);
   const [TextSearch, SetTextSearch] = useState("");
@@ -46,7 +50,7 @@ function Billinvoices_Page() {
         return Lis;
       });
 
-      let price = Pro.Type == "Service" ? Pro.base_price : Pro.price;
+      let price = Pro.type == T_Ser ? Pro.base_price : Pro.price;
 
       SetPrecioTotal((prev) => prev + price * Pro.Cant);
       SetTextSearch("");
@@ -55,6 +59,11 @@ function Billinvoices_Page() {
   };
 
   const fun_SelectProduct = (Pro) => {
+    if (Pro.type == T_Ser) {
+      api.get("/services/" + Pro.id + "/products").then((res) => {
+        console.log(res.data.data);
+      });
+    }
     SetTextSearch(Pro.name);
     setProducto([]);
     setProductoSelect(Pro);
@@ -98,7 +107,7 @@ function Billinvoices_Page() {
                     fun_SelectProduct(p);
                   }}
                 >
-                  {p.Type == "Service" ? (
+                  {p.type == T_Ser ? (
                     <span>
                       {p.name} : {p.base_price}
                     </span>
@@ -135,8 +144,8 @@ function Billinvoices_Page() {
         <hr />
         <ul>
           {ProductoSelet.map((p) => (
-            <li key={p.id + "H" + p.Type}>
-              {p.Type == "Service" ? (
+            <li key={p.id + "H" + p.type}>
+              {p.type == T_Ser ? (
                 <span>
                   {p.name} : {p.Cant} : {p.base_price * p.Cant} :{" "}
                 </span>
