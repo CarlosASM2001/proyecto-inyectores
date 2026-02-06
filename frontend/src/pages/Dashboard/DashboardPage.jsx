@@ -40,6 +40,12 @@ const defaultSummary = {
   lowStockList: [],
 };
 
+const normalizeList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.data)) return value.data;
+  return [];
+};
+
 export default function DashboardPage() {
   const [summary, setSummary] = useState(defaultSummary);
   const [loading, setLoading] = useState(true);
@@ -56,7 +62,14 @@ export default function DashboardPage() {
         const payload = data?.data ?? data ?? {};
 
         if (!mounted) return;
-        setSummary({ ...defaultSummary, ...payload });
+        const normalizedPayload = {
+          ...payload,
+          latestCustomers: normalizeList(payload.latestCustomers),
+          recentInvoices: normalizeList(payload.recentInvoices),
+          topDebts: normalizeList(payload.topDebts),
+          lowStockList: normalizeList(payload.lowStockList),
+        };
+        setSummary({ ...defaultSummary, ...normalizedPayload });
       } catch (err) {
         if (!mounted) return;
         setError(err?.response?.status === 401 ? "Sesión expirada" : "Error al cargar el dashboard");

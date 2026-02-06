@@ -24,12 +24,24 @@ class DashboardController extends Controller
         $totalDebts = Debt::sum('pending_balance');
         $lowStockCount = Product::whereColumn('actual_stock', '<=', 'min_stock')->count();
 
-        $latestCustomers = Client::orderByDesc('id')->limit(4)->get();
-        $recentInvoices = Invoice::orderByDesc('id')->limit(5)->get();
-        $lowStockList = Product::whereColumn('actual_stock', '<=', 'min_stock')
-            ->orderBy('actual_stock', 'asc')
-            ->limit(3)
-            ->get();
+        $latestCustomers = array_values(
+            ClientResource::collection(
+                Client::orderByDesc('id')->limit(4)->get()
+            )->toArray($request)
+        );
+        $recentInvoices = array_values(
+            InvoiceResource::collection(
+                Invoice::orderByDesc('id')->limit(5)->get()
+            )->toArray($request)
+        );
+        $lowStockList = array_values(
+            ProductResource::collection(
+                Product::whereColumn('actual_stock', '<=', 'min_stock')
+                    ->orderBy('actual_stock', 'asc')
+                    ->limit(3)
+                    ->get()
+            )->toArray($request)
+        );
 
         $topDebts = Debt::with('Client')
             ->orderByDesc('pending_balance')
@@ -43,7 +55,9 @@ class DashboardController extends Controller
                     'pending_balance' => $debt->pending_balance,
                     'created_at' => $debt->created_at?->format('Y-m-d'),
                 ];
-            });
+            })
+            ->values()
+            ->all();
 
         return response()->json([
             'data' => [
@@ -51,10 +65,10 @@ class DashboardController extends Controller
                 'monthlyInvoices' => $monthlyInvoices,
                 'totalDebts' => $totalDebts,
                 'lowStockCount' => $lowStockCount,
-                'latestCustomers' => ClientResource::collection($latestCustomers)->toArray($request),
-                'recentInvoices' => InvoiceResource::collection($recentInvoices)->toArray($request),
+                'latestCustomers' => $latestCustomers,
+                'recentInvoices' => $recentInvoices,
                 'topDebts' => $topDebts,
-                'lowStockList' => ProductResource::collection($lowStockList)->toArray($request),
+                'lowStockList' => $lowStockList,
             ],
         ]);
     }
