@@ -22,6 +22,11 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
+
+    const config = await api.get("/settings", { email, password });
+    config.data.data.map((cg) => {
+      localStorage.setItem(cg.key, cg.value);
+    });
   };
 
   const logout = () => {
