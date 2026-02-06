@@ -11,9 +11,9 @@ function Billinvoices_Page() {
 
   const [Producto, setProducto] = useState([]);
   const [ProductoSelect, setProductoSelect] = useState();
+  const [Productos_Invoce, setProductos_Invoce] = useState([]);
   const [ProductoService, setProductoService] = useState([]);
   const [Typing, setTyping] = useState(false);
-  const [ProductoSelet, setProductoSelet] = useState([]);
   const [TextSearch, SetTextSearch] = useState("");
   const [TextCant, SetTextCant] = useState("");
   const [PrecioTotal, SetPrecioTotal] = useState(0);
@@ -24,6 +24,7 @@ function Billinvoices_Page() {
   const fun_Seach = (Text) => {
     if (Text.length > 3 && !Typing) {
       setTyping(true);
+      setProductoService([]);
       api.post("/products/Like", { Seach: Text }).then((res) => {
         api.post("/services/Like", { Seach: Text }).then((res1) => {
           setProducto((prev) => {
@@ -44,26 +45,31 @@ function Billinvoices_Page() {
     if (!isNaN(TextCant)) {
       Pro.Cant = parseFloat(TextCant);
 
-      setProductoSelet((prev) => {
+      setProductos_Invoce((prev) => {
         const Lis = prev.map((s) => s);
         Lis.push(Pro);
         return Lis;
       });
+
+      if (Pro.type == T_Ser) Pro.products = ProductoService;
 
       let price = Pro.type == T_Ser ? Pro.base_price : Pro.price;
 
       SetPrecioTotal((prev) => prev + price * Pro.Cant);
       SetTextSearch("");
       SetTextCant("");
+      setProductoService([]);
+      setProductoSelect(null);
     }
   };
 
   const fun_SelectProduct = (Pro) => {
     if (Pro.type == T_Ser) {
       api.get("/services/" + Pro.id + "/products").then((res) => {
-        console.log(res.data.data);
+        setProductoService(res.data.data);
       });
     }
+    SetTextCant(1);
     SetTextSearch(Pro.name);
     setProducto([]);
     setProductoSelect(Pro);
@@ -78,6 +84,24 @@ function Billinvoices_Page() {
       SetCambio(1 / cm);
     } else {
       SetCambio(1);
+    }
+  };
+
+  const fun_AddCantPro_Service = (Pro, cant) => {
+    if (Pro.type == T_Ser) {
+      if (parseFloat(cant) != null) {
+        console.log(cant);
+        const c = parseFloat(cant);
+
+        let ax_pro = ProductoService.map((p) => {
+          p.price_ = p.price * c;
+          p.quantity_ = p.quantity * c;
+          return p;
+        });
+
+        setProductoService(ax_pro);
+        //ax.setProductoService((prev));
+      }
     }
   };
 
@@ -130,8 +154,20 @@ function Billinvoices_Page() {
           value={TextCant}
           onChange={(e) => {
             SetTextCant(e.target.value);
+            if (ProductoSelect)
+              fun_AddCantPro_Service(ProductoSelect, e.target.value);
           }}
         />
+        <hr />
+        <ul>
+          {ProductoService.length > 0 &&
+            ProductoService.map((p) => (
+              <li>
+                {p.name} | {p.quantity_ ?? p.quantity} |{" "}
+                {(p.price_ ?? p.price) * Cambio}
+              </li>
+            ))}
+        </ul>
         <hr />
         <button
           onClick={(e) => {
@@ -143,7 +179,7 @@ function Billinvoices_Page() {
         </button>
         <hr />
         <ul>
-          {ProductoSelet.map((p) => (
+          {Productos_Invoce.map((p) => (
             <li key={p.id + "H" + p.type}>
               {p.type == T_Ser ? (
                 <span>

@@ -44,19 +44,18 @@ class InvoiceSeeder extends Seeder
                 'user_id' => $admin->id,
                 'client_id' => Client::all()->random()->id,
             ])->each(function (Invoice $invoice) use ($fecha, $cierre) {
-                
+
                 // A. Vincular Productos y Servicios (Usando los modelos que pasaste)
                 $this->attachItems($invoice);
 
                 // B. Lógica de Cobro
                 $suerte = rand(1, 100);
 
-                if ($suerte > 75) { 
+                if ($suerte > 75) {
                     // 25% Deuda total
                     $invoice->update(['status' => 'Pendiente']);
                     Debt::factory()->create(['invoice_id' => $invoice->id]);
-                } 
-                elseif ($suerte > 45) { 
+                } elseif ($suerte > 45) {
                     // 30% Pago Parcial (Moneda local VES)
                     Payment::factory()->create([
                         'invoice_id' => $invoice->id,
@@ -67,8 +66,7 @@ class InvoiceSeeder extends Seeder
                         'reference' => rand(35, 50), // Tasa de cambio como decimal
                     ]);
                     $invoice->update(['status' => 'En Proceso']);
-                } 
-                else { 
+                } else {
                     // 45% Pago Completo (Moneda USD)
                     Payment::factory()->create([
                         'invoice_id' => $invoice->id,
@@ -93,7 +91,7 @@ class InvoiceSeeder extends Seeder
 
     private function attachItems(Invoice $invoice)
     {
-        // Relación con Productos (asumiendo que en la migración de factura_producto 
+        // Relación con Productos (asumiendo que en la migración de factura_producto
         // usas price o unitary_price)
         $products = Product::inRandomOrder()->limit(rand(1, 3))->get();
         foreach ($products as $product) {
@@ -118,7 +116,7 @@ class InvoiceSeeder extends Seeder
         // Recalcular total de la factura sumando ambas relaciones
         $totalProducts = $invoice->products->sum('pivot.subtotal');
         $totalServices = $invoice->services->sum('pivot.subtotal');
-        
+
         $invoice->update(['total_value' => $totalProducts + $totalServices]);
     }
 }
