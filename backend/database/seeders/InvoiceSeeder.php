@@ -40,20 +40,20 @@ class InvoiceSeeder extends Seeder
                 'user_id' => $admin->id,
                 'client_id' => Client::all()->random()->id,
             ])->each(function (Invoice $invoice) use ($fecha, $cierre) {
-                
+
                 $this->attachItems($invoice);
 
                 $suerte = rand(1, 100);
 
-                if ($suerte > 75) { 
+                if ($suerte > 75) {
                     $invoice->update(['status' => 'Pendiente']);
                     Debt::factory()->create(['invoice_id' => $invoice->id]);
-                } 
-                elseif ($suerte > 45) { 
+                }
+                elseif ($suerte > 45) {
                     Payment::factory()->create();
                     $invoice->update(['status' => 'En Proceso']);
-                } 
-                else { 
+                }
+                else {
                     Payment::factory()->create();
                     $invoice->update(['status' => 'Pagada']);
                 }
@@ -70,7 +70,6 @@ class InvoiceSeeder extends Seeder
 
     private function attachItems(Invoice $invoice)
     {
-
         $products = Product::inRandomOrder()->limit(rand(1, 3))->get();
         foreach ($products as $product) {
             $qty = rand(1, 4);
@@ -93,7 +92,7 @@ class InvoiceSeeder extends Seeder
         // Recalcular total de la factura sumando ambas relaciones
         $totalProducts = $invoice->products->sum('pivot.subtotal');
         $totalServices = $invoice->services->sum('pivot.subtotal');
-        
+
         $invoice->update(['total_value' => $totalProducts + $totalServices]);
     }
 }

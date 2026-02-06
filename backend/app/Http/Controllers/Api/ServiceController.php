@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\StoreServiceRequest;
 use App\Http\Requests\Update\UpdateServiceRequest;
 use App\Http\Resources\ServiceResource;
+use App\Http\Resources\ProductServiceResource;
 
 class ServiceController extends Controller
 {
@@ -64,5 +65,13 @@ class ServiceController extends Controller
             'message' => 'El servicio ha sido eliminado correctamente',
             Response::HTTP_NO_CONTENT
         ]);
+    }
+
+    /**
+     * Obtener todos los productos asociados a un servicio
+     */
+    public function getProducts(Service $service)
+    {
+        return ProductServiceResource::collection($service->Productos()->get());
     }
 }

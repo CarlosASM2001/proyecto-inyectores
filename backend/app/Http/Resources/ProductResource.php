@@ -23,7 +23,7 @@ class ProductResource extends JsonResource
             'actual_stock' => $this->actual_stock,
             'min_stock' => $this->min_stock,
             'created_at' => $this->created_at?->format('Y-m-d'),
-            'Type' => 'Producto'
+            'type' => 'Product'
         ];
     }
 }

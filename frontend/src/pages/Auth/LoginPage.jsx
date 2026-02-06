@@ -32,15 +32,15 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-200 p-4 font-sans">
       {/* Main Card */}
       <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl w-full max-w-lg transition-all duration-300">
-        
         {/* Logo and Header */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-1 mb-4">
-             <Wrench className="w-12 h-12 text-black" strokeWidth={2.5} />
-             <Car className="w-12 h-12 text-black" fill="currentColor" />
+            <Wrench className="w-12 h-12 text-black" strokeWidth={2.5} />
+            <Car className="w-12 h-12 text-black" fill="currentColor" />
           </div>
           <h2 className="text-3xl font-black text-center text-gray-900 leading-tight">
-            Servicio de Inyectores<br />
+            Servicio de Inyectores
+            <br />
             El Profe BT.
           </h2>
         </div>
@@ -55,7 +55,9 @@ export default function Login() {
 
           {/* Email Input */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-800 uppercase ml-1">Email</label>
+            <label className="text-xs font-black text-gray-800 uppercase ml-1">
+              Email
+            </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900" />
               <input
@@ -71,7 +73,9 @@ export default function Login() {
 
           {/* Password Input */}
           <div className="space-y-2">
-            <label className="text-xs font-black text-gray-800 uppercase ml-1">Password</label>
+            <label className="text-xs font-black text-gray-800 uppercase ml-1">
+              Password
+            </label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900" />
               <input

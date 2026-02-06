@@ -15,12 +15,12 @@ class SettingSeeder extends Seeder
         $settings = [
             [
                 'key' => 'exchange_rate_usd',
-                'value' => '0.00025',
+                'value' => '3.700',
                 'description' => 'Tipo de cambio COP a USD'
             ],
             [
                 'key' => 'exchange_rate_ves',
-                'value' => '0.088',
+                'value' => '0.007',
                 'description' => 'Tipo de cambio COP a VES'
             ],
             [
@@ -30,7 +30,7 @@ class SettingSeeder extends Seeder
             ],
             [
                 'key' => 'iva_rate',
-                'value' => '0.19',
+                'value' => '0.12',
                 'description' => 'Tasa de IVA'
             ],
             [
@@ -50,7 +50,7 @@ class SettingSeeder extends Seeder
             ],
             [
                 'key' => 'company_address',
-                'value' => 'Calle 123 # 45-67, Medellín, Colombia',
+                'value' => 'Calle 123 # 45-67',
                 'description' => 'Dirección de la empresa'
             ]
         ];

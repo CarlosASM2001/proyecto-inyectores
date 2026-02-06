@@ -39,8 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clients', ClientController::class);
     Route::apiResource('products', ProductController::class);
     Route::post("/products/Like", [ProductController::class, 'indexLike']);
+
     Route::apiResource('services', ServiceController::class);
     Route::post("/services/Like", [ServiceController::class, 'indexLike']);
+    Route::get('/services/{service}/products', [ServiceController::class, 'getProducts']);
+
     Route::apiResource('payments', PaymentController::class);
     Route::apiResource('debt', DebtController::class);
     Route::apiResource('invoices', InvoiceController::class);
