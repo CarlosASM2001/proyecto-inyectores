@@ -1,15 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../service/api_Authorization";
 import { Users, FileText, AlertTriangle, Package  } from "lucide-react";
 
-function parseYmd(ymd) {
-  if (!ymd || typeof ymd !== "string") return null;
-  // formato: "YYYY-MM-DD"
-  const [y, m, d] = ymd.split("-").map((v) => Number(v));
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
 
 function formatMoney(value) {
   const n = Number(value ?? 0);
@@ -37,34 +30,40 @@ function InvoiceStatusPill({ status }) {
   );
 }
 
+
+const defaultSummary = {
+  newCustomers: 0,
+  monthlyInvoices: 0,
+  totalDebts: 0,
+  lowStockCount: 0,
+  latestCustomers: [],
+  recentInvoices: [],
+  topDebts: [],
+  lowStockList: [],
+};
+
+
 export default function DashboardPage() {
-  const [clients, setClients] = useState([]);
-  const [invoices, setInvoices] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [debts, setDebts] = useState([]);
+  const [summary, setSummary] = useState(defaultSummary);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
 
-    async function fetchAll() {
+    async function fetchSummary() {
       setLoading(true);
       setError(null);
       try {
-        const [cliRes, invRes, prodRes, debtRes] = await Promise.all([
-          api.get("/clients"),
-          api.get("/invoices"),
-          api.get("/products"),
-          api.get("/debt"),
-        ]);
+        
+        const {data} = await api.get("/dashboard");
+        const payload = data?.data ?? data ?? {};
 
         if (!mounted) return;
 
-        setClients(cliRes.data?.data ?? cliRes.data ?? []);
-        setInvoices(invRes.data?.data ?? invRes.data ?? []);
-        setProducts(prodRes.data?.data ?? prodRes.data ?? []);
-        setDebts(debtRes.data?.data ?? debtRes.data ?? []);
+        
+
+        setSummary({ ...defaultSummary, ...payload });
       } catch (err) {
         if (!mounted) return;
         setError(err?.response?.status === 401 ? "Sesión expirada" : "Error al cargar el dashboard");
@@ -73,55 +72,11 @@ export default function DashboardPage() {
       }
     }
 
-    fetchAll();
+    fetchSummary();
     return () => {
       mounted = false;
     };
   }, []);
-
-  const derived = useMemo(() => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const clientsById = new Map(clients.map((c) => [c.id, c]));
-
-    const newCustomers = clients.filter((c) => {
-      const dt = parseYmd(c.created_at);
-      return dt ? dt >= startOfMonth : false;
-    }).length;
-
-    const monthlyInvoices = invoices.filter((inv) => {
-      const dt = parseYmd(inv.date);
-      return dt ? dt >= startOfMonth : false;
-    }).length;
-
-    const totalDebts = debts.reduce((sum, d) => sum + Number(d.pending_balance ?? 0), 0);
-
-    const lowStockProducts = products.filter(
-      (p) => Number(p.actual_stock ?? 0) <= Number(p.min_stock ?? 0),
-    );
-
-    const latestCustomers = [...clients].sort((a, b) => (b.id ?? 0) - (a.id ?? 0)).slice(0, 4);
-    const recentInvoices = [...invoices].sort((a, b) => (b.id ?? 0) - (a.id ?? 0)).slice(0, 5);
-    const topDebts = [...debts]
-      .sort((a, b) => Number(b.pending_balance ?? 0) - Number(a.pending_balance ?? 0))
-      .slice(0, 3);
-    const lowStockList = [...lowStockProducts]
-      .sort((a, b) => Number(a.actual_stock ?? 0) - Number(b.actual_stock ?? 0))
-      .slice(0, 3);
-
-    return {
-      clientsById,
-      newCustomers,
-      monthlyInvoices,
-      totalDebts,
-      lowStockCount: lowStockProducts.length,
-      latestCustomers,
-      recentInvoices,
-      topDebts,
-      lowStockList,
-    };
-  }, [clients, invoices, products, debts]);
 
   if (loading) {
     return (
@@ -162,7 +117,7 @@ export default function DashboardPage() {
                 Nuevos clientes
               </p>
               <h4 className="text-2xl font-black text-gray-900 italic leading-none">
-                {derived.newCustomers}
+                {summary.newCustomers}
               </h4>
             </div>
           </div>
@@ -178,7 +133,7 @@ export default function DashboardPage() {
                 Facturas del mes
               </p>
               <h4 className="text-2xl font-black text-gray-900 italic leading-none">
-                {derived.monthlyInvoices}
+                {summary.monthlyInvoices}
               </h4>
             </div>
           </div>
@@ -194,7 +149,7 @@ export default function DashboardPage() {
                 Deudas totales
               </p>
               <h4 className="text-xl font-black text-workshop-red italic leading-none">
-                {formatMoney(derived.totalDebts)}
+                {formatMoney(summary.totalDebts)}
               </h4>
             </div>
           </div>
@@ -210,7 +165,7 @@ export default function DashboardPage() {
                 Bajo stock
               </p>
               <h4 className="text-2xl font-black text-gray-900 italic leading-none">
-                {derived.lowStockCount}
+                {summary.lowStockCount}
               </h4>
             </div>
           </div>
@@ -237,7 +192,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 font-bold italic">
-                {derived.latestCustomers.map((c) => (
+                {summary.latestCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-900 uppercase tracking-tighter font-black">
                       {c.name}
@@ -246,7 +201,7 @@ export default function DashboardPage() {
                     <td className="px-5 py-4 text-sm text-gray-600">{c.cedula ?? "—"}</td>
                   </tr>
                 ))}
-                {derived.latestCustomers.length === 0 && (
+                {summary.latestCustomers.length === 0 && (
                   <tr>
                     <td className="px-5 py-6 text-sm text-gray-400 italic" colSpan={3}>
                       No hay clientes registrados.
@@ -276,7 +231,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 font-bold italic">
-                {derived.recentInvoices.map((inv) => (
+                {summary.recentInvoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-900 font-black uppercase tracking-tighter">
                       {`#FACT-${String(inv.id ?? "").padStart(4, "0")}`}
@@ -289,7 +244,7 @@ export default function DashboardPage() {
                     </td>
                   </tr>
                 ))}
-                {derived.recentInvoices.length === 0 && (
+                {summary.recentInvoices.length === 0 && (
                   <tr>
                     <td className="px-5 py-6 text-sm text-gray-400 italic" colSpan={3}>
                       No hay facturas registradas.
@@ -313,8 +268,8 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="divide-y divide-gray-100">
-            {derived.topDebts.map((d) => {
-              const clientName = derived.clientsById.get(d.client_id)?.name ?? "Cliente";
+            {summary.topDebts.map((d) => {
+              const clientName = d.client_name ?? "Cliente";
               return (
                 <div key={d.id} className="p-5 flex items-start justify-between gap-4">
                   <div>
@@ -331,7 +286,7 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-            {derived.topDebts.length === 0 && (
+            {summary.topDebts.length === 0 && (
               <div className="p-6 text-sm text-gray-400 italic">No hay deudas registradas.</div>
             )}
           </div>
@@ -346,7 +301,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {derived.lowStockList.map((p) => (
+            {summary.lowStockList.map((p) => (
               <div key={p.id} className="p-5 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="font-black text-gray-900 uppercase tracking-tighter italic truncate">
@@ -361,7 +316,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
-            {derived.lowStockList.length === 0 && (
+            {summary.lowStockList.length === 0 && (
               <div className="p-6 text-sm text-gray-400 italic">No hay productos en bajo stock.</div>
             )}
           </div>
