@@ -63,11 +63,16 @@ export default function DashboardPage() {
 
         if (!mounted) return;
         const normalizedPayload = {
-          ...payload,
-          latestCustomers: normalizeList(payload.latestCustomers),
-          recentInvoices: normalizeList(payload.recentInvoices),
-          topDebts: normalizeList(payload.topDebts),
-          lowStockList: normalizeList(payload.lowStockList),
+          newCustomers: payload.newCustomers ?? payload.new_customers ?? payload.new_costumers ?? 0,
+          monthlyInvoices: payload.monthlyInvoices ?? payload.monthly_invoices ?? 0,
+          totalDebts: payload.totalDebts ?? payload.total_debts ?? 0,
+          lowStockCount: payload.lowStockCount ?? payload.low_stock_count ?? 0,
+          latestCustomers: normalizeList(
+            payload.latestCustomers ?? payload.latest_customers ?? payload.latest_costumers,
+          ),
+          recentInvoices: normalizeList(payload.recentInvoices ?? payload.recent_invoices),
+          topDebts: normalizeList(payload.topDebts ?? payload.top_debts),
+          lowStockList: normalizeList(payload.lowStockList ?? payload.low_stock_list),
         };
         setSummary({ ...defaultSummary, ...normalizedPayload });
       } catch (err) {
