@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../service/api_Authorization";
 import { X, Save, Wrench } from "lucide-react";
+import ProductoService_Componet from "../../components/ProductoService_Componet";
 
 export default function ServiceModal({
   onClose,
@@ -64,17 +65,27 @@ export default function ServiceModal({
 
   const fun_AddProducts = async (Pro) => {
     let ax_p = Products_Select.map((p) => p);
+    Pro.Cant = 1;
     ax_p.push(Pro);
     setProducts_Select(ax_p);
     setProductsSearch("");
     setProducts_List([]);
   };
 
+  const BorrarProducto = (Pro) => {
+    setProducts_Select((Prev) => Prev.filter((p) => p.id != Pro.id));
+  };
+
+  const Producto_UpdaCant = (Pro, Cant) => {
+    let ind = Products_Select.findIndex((p) => p.id == Pro.id);
+    Products_Select[ind].Cant = Cant;
+  };
+
   const inputClass =
     "w-full px-4 py-3 rounded-xl border border-gray-200 font-bold focus:border-workshop-red focus:ring-4 focus:ring-red-500/10 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
@@ -178,17 +189,23 @@ export default function ServiceModal({
               <ul>
                 {Products_Select.map((p) => (
                   <li>
-                    {p.name}{" "}
-                    <input
-                      type="number"
-                      value={p.Cant ?? 1}
-                      required
-                      className={inputClass}
-                    />
+                    <ProductoService_Componet
+                      Producto={p}
+                      BorrarProducto={BorrarProducto}
+                      Producto_UpdaCant={Producto_UpdaCant}
+                    ></ProductoService_Componet>
                   </li>
                 ))}
               </ul>
             )}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                console.log(Products_Select);
+              }}
+            >
+              OOO
+            </button>
           </div>
 
           <div className="pt-4 flex gap-3">

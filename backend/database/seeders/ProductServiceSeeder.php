@@ -45,7 +45,5 @@ class ProductServiceSeeder extends Seeder
                 );
             }
         });
-
-        $this->command->info('Tabla product_service poblada exitosamente.');
     }
 }
