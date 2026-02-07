@@ -25,7 +25,7 @@ class ProductController extends Controller
      */
     public function indexLike(Request $request)
     {
-        return ProductResource::collection(Product::where('name', 'LIKE', '%' . $request->Seach . '%')->take(10)->get());
+        return ProductResource::collection(Product::where('name', 'LIKE', '%' . $request->Seach . '%')->take(5)->get());
     }
 
     /**

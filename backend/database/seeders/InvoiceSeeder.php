@@ -48,12 +48,10 @@ class InvoiceSeeder extends Seeder
                 if ($suerte > 75) {
                     $invoice->update(['status' => 'Pendiente']);
                     Debt::factory()->create(['invoice_id' => $invoice->id]);
-                }
-                elseif ($suerte > 45) {
+                } elseif ($suerte > 45) {
                     Payment::factory()->create();
                     $invoice->update(['status' => 'En Proceso']);
-                }
-                else {
+                } else {
                     Payment::factory()->create();
                     $invoice->update(['status' => 'Pagada']);
                 }
