@@ -5,7 +5,13 @@ function ProductoService_Componet({
   BorrarProducto,
   Producto_UpdaCant,
 }) {
-  const [TextCantidad, setTextCantidad] = useState(1);
+  const [TextCantidad, setTextCantidad] = useState(Producto.quantity || 1);
+
+  const handleCantidadChange = (e) => {
+    const nuevaCantidad = e.target.valueAsNumber;
+    setTextCantidad(nuevaCantidad);
+    Producto_UpdaCant(Producto, nuevaCantidad);
+  };
 
   return (
     <>
@@ -13,11 +19,9 @@ function ProductoService_Componet({
       <input
         type="number"
         value={TextCantidad}
-        onChange={(e) => {
-          setTextCantidad(e.target.value);
-          Producto_UpdaCant(Producto, e.target.valueAsNumber);
-        }}
+        onChange={handleCantidadChange}
         required
+        min="1"
       />
       <button onClick={() => BorrarProducto(Producto)}>Borrar</button>
     </>

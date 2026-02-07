@@ -23,7 +23,7 @@ class ServiceController extends Controller
 
     public function indexLike(Request $request)
     {
-        return ServiceResource::collection(Service::where('name', 'LIKE', '%' . $request->Seach . '%')->take(10)->get());
+        return ServiceResource::collection(Service::where('name', 'LIKE', '%' . $request->Seach . '%')->take(5)->get());
     }
 
     /**
@@ -31,7 +31,16 @@ class ServiceController extends Controller
      */
     public function store(StoreServiceRequest $request)
     {
-        $service = Service::Create($request->validated());
+        $service = Service::create($request->validated());
+
+        // Sincronizar productos si se proporcionan
+        if ($request->has('products') && !empty($request->products)) {
+            $products = [];
+            foreach ($request->products as $product) {
+                $products[$product['id']] = ['quantity' => $product['quantity']];
+            }
+            $service->Productos()->attach($products);
+        }
 
         return new ServiceResource($service);
     }
@@ -41,6 +50,9 @@ class ServiceController extends Controller
      */
     public function show(Service $service)
     {
+        // Cargar productos del servicio
+        $service->load('Productos');
+
         return new ServiceResource($service);
     }
 
@@ -50,6 +62,20 @@ class ServiceController extends Controller
     public function update(UpdateServiceRequest $request, Service $service)
     {
         $service->update($request->validated());
+
+        // Sincronizar productos si se proporcionan
+        if ($request->has('products')) {
+            $products = [];
+            foreach ($request->products as $product) {
+                $products[$product['id']] = ['quantity' => $product['quantity']];
+            }
+
+            if (empty($products)) {
+                $service->Productos()->detach();
+            } else {
+                $service->Productos()->sync($products);
+            }
+        }
 
         return new ServiceResource($service);
     }

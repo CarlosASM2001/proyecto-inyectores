@@ -21,7 +21,8 @@ class ServiceResource extends JsonResource
             'description' => $this->description,
             'base_price' => $this->base_price,
             'created_at' => $this->created_at?->format('Y-m-d'),
-            'type' => 'Service'
+            'type' => 'Service',
+            'products' => ProductServiceResource::collection($this->whenLoaded('Productos'))
         ];
     }
 }
