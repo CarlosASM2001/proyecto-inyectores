@@ -78,9 +78,17 @@ function Billinvoices_Page() {
         return Lis;
       });
 
-      if (item.type == T_Ser) item.products = ProductoService;
+      if (item.type == T_Ser) {
+        item.products = ProductoService;
+        let SubTotalPro = parseFloat(item.base_price);
+        SubTotalPro += ProductoService.reduce(
+          (Sum, p) => Sum + (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity),
+          0,
+        );
+        item.subtotal = SubTotalPro;
+      }
 
-      let price = item.type == T_Ser ? item.base_price : item.price;
+      let price = item.type == T_Ser ? item.subtotal : item.price;
 
       SetPrecioTotal((prev) => prev + price * item.quantity);
       SetTextSearchPro("");
@@ -310,7 +318,28 @@ function Billinvoices_Page() {
           </li>
           <li>
             <label htmlFor="txt_CantPag">Cantidad Pagada</label>
-            <input type="text" name="txt_CantPag" id="txt_CantPag" />
+            <input
+              type="text"
+              name="txt_CantPag"
+              id="txt_CantPag"
+              value={TextPagado}
+              onChange={(e) => {
+                SetTextPagado(e.target.value);
+              }}
+            />
+            <span>{TipoMoneda_sim}</span>
+          </li>
+          <li>
+            <label>Restante: </label>
+            <label>
+              <span>
+                {PrecioTotal - TextPagado / Cambio > 0
+                  ? formateador.format(
+                      (PrecioTotal - TextPagado / Cambio) * Cambio,
+                    )
+                  : "---"}{" "}
+              </span>
+            </label>
             <span>{TipoMoneda_sim}</span>
           </li>
         </ul>
