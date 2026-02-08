@@ -2,11 +2,17 @@ import { useState } from "react";
 import api from "../../service/api_Authorization";
 
 function Billinvoices_Page() {
+  const formateador = new Intl.NumberFormat("es-VE", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+  });
+
   const T_Ser = "Service";
   const T_Pro = "Product";
+
   const TipoMoneda_Array = ["Pesos", "Dolares", "Bolivares"];
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
-  const TipoMoneda_Array_Sim = ["P$", "$", "Bs"];
+  const TipoMoneda_Array_Sim = ["COP", "$", "BS"];
 
   const [Producto_List, setProducto] = useState([]);
   const [ProductSelect_aux, setProductoSelect] = useState();
@@ -20,6 +26,7 @@ function Billinvoices_Page() {
   const [TextSearchPro, SetTextSearchPro] = useState("");
   const [TextSearchCli, SetTextSearchCli] = useState("");
   const [TextCant, SetTextCant] = useState("");
+  const [TextPagado, SetTextPagado] = useState(0);
 
   const [Cambio, SetCambio] = useState(1);
   const [PrecioTotal, SetPrecioTotal] = useState(0);
@@ -63,7 +70,7 @@ function Billinvoices_Page() {
 
   const fun_AddProduct = (item) => {
     if (!isNaN(TextCant)) {
-      item.Cant = parseFloat(TextCant);
+      item.quantity = parseFloat(TextCant);
 
       setProductos_Invoce((prev) => {
         const Lis = prev.map((s) => s);
@@ -75,7 +82,7 @@ function Billinvoices_Page() {
 
       let price = item.type == T_Ser ? item.base_price : item.price;
 
-      SetPrecioTotal((prev) => prev + price * item.Cant);
+      SetPrecioTotal((prev) => prev + price * item.quantity);
       SetTextSearchPro("");
       SetTextCant("");
       setProductoService([]);
@@ -196,11 +203,12 @@ function Billinvoices_Page() {
                 >
                   {p.type == T_Ser ? (
                     <span>
-                      {p.name} : {p.base_price}
+                      {p.name} : {formateador.format(p.base_price)}
                     </span>
                   ) : (
                     <span>
-                      {p.name} : {p.price} : {p.actual_stock}
+                      {p.name} : {formateador.format(p.price)} :{" "}
+                      {formateador.format(p.actual_stock)}
                     </span>
                   )}
                 </button>
@@ -226,8 +234,10 @@ function Billinvoices_Page() {
           {ProductoService.length > 0 &&
             ProductoService.map((p) => (
               <li>
-                {p.name} | {p.quantity_ ?? p.quantity} |{" "}
-                {(p.price_ ?? p.price) * Cambio}
+                {p.name} | {formateador.format(p.quantity_ ?? p.quantity)} |{" "}
+                {formateador.format(
+                  (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity) * Cambio,
+                )}
               </li>
             ))}
         </ul>
@@ -243,14 +253,35 @@ function Billinvoices_Page() {
         <hr />
         <ul>
           {Products_Invoce.map((p) => (
-            <li key={p.id + "H" + p.type}>
+            <li key={p.id + "_" + p.type}>
               {p.type == T_Ser ? (
-                <span>
-                  {p.name} : {p.Cant} : {p.base_price * p.Cant} :{" "}
-                </span>
+                <div>
+                  <span>
+                    {p.name} : {p.quantity} :{" "}
+                    {formateador.format(p.base_price * p.quantity * Cambio)}{" "}
+                    :{" "}
+                  </span>
+                  <ul>
+                    {p.products.map((p1) => {
+                      console.log(p1);
+                      return (
+                        <li key={p1.id + "Sp" + p.id}>
+                          {p1.name} : {p1.quantity_ ?? p1.quantity} :{" "}
+                          {formateador.format(
+                            (p1.price_ ?? p1.price) *
+                              (p1.quantity_ ?? p1.quantity) *
+                              Cambio,
+                          )}{" "}
+                          :{" "}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               ) : (
                 <span>
-                  {p.name} : {p.Cant} : {p.price * p.Cant} :{" "}
+                  {p.name} : {p.quantity} :{" "}
+                  {formateador.format(p.price * p.quantity * Cambio)} :{" "}
                 </span>
               )}
             </li>
@@ -273,8 +304,14 @@ function Billinvoices_Page() {
           </li>
           <li>
             <p>
-              Precio Total: {PrecioTotal * Cambio} <span>{TipoMoneda_sim}</span>
+              Precio Total: {formateador.format(PrecioTotal * Cambio)}{" "}
+              <span>{TipoMoneda_sim}</span>
             </p>
+          </li>
+          <li>
+            <label htmlFor="txt_CantPag">Cantidad Pagada</label>
+            <input type="text" name="txt_CantPag" id="txt_CantPag" />
+            <span>{TipoMoneda_sim}</span>
           </li>
         </ul>
         <button>Facturar</button>
