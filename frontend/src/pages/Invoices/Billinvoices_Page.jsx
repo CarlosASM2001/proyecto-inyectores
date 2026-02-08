@@ -1,6 +1,5 @@
 import { useState } from "react";
 import api from "../../service/api_Authorization";
-import { Contrast } from "lucide-react";
 
 function Billinvoices_Page() {
   const T_Ser = "Service";
@@ -9,20 +8,27 @@ function Billinvoices_Page() {
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
   const TipoMoneda_Array_Sim = ["P$", "$", "Bs"];
 
-  const [Producto, setProducto] = useState([]);
-  const [ProductoSelect, setProductoSelect] = useState();
-  const [Productos_Invoce, setProductos_Invoce] = useState([]);
+  const [Producto_List, setProducto] = useState([]);
+  const [ProductSelect_aux, setProductoSelect] = useState();
+  const [Products_Invoce, setProductos_Invoce] = useState([]);
   const [ProductoService, setProductoService] = useState([]);
+
+  const [ClientsList, setClientsList] = useState([]);
+  const [ClientSelect, setClientSelect] = useState();
+
   const [Typing, setTyping] = useState(false);
-  const [TextSearch, SetTextSearch] = useState("");
+  const [TextSearchPro, SetTextSearchPro] = useState("");
+  const [TextSearchCli, SetTextSearchCli] = useState("");
   const [TextCant, SetTextCant] = useState("");
-  const [PrecioTotal, SetPrecioTotal] = useState(0);
+
   const [Cambio, SetCambio] = useState(1);
+  const [PrecioTotal, SetPrecioTotal] = useState(0);
+
   const [TipoMoneda, SetTipoMoneda] = useState(TipoMoneda_Array[0]);
   const [TipoMoneda_sim, SetTipoMoneda_sim] = useState(TipoMoneda_Array_Sim[0]);
 
-  const fun_Seach = (Text) => {
-    if (Text.length > 3 && !Typing) {
+  const fun_SeachPro = (Text) => {
+    if (Text.length > 2 && !Typing) {
       setTyping(true);
       setProductoService([]);
       api.post("/products/Like", { Seach: Text }).then((res) => {
@@ -41,22 +47,36 @@ function Billinvoices_Page() {
     }
   };
 
-  const fun_AddProduct = (Pro) => {
+  const fun_SeachCli = (txt) => {
+    if (txt.length > 2 && !Typing) {
+      setClientSelect(null);
+      setTyping(true);
+      setClientsList([]);
+      api.post("/clients/Like", { Seach: txt }).then((resp) => {
+        setClientsList(resp.data.data);
+        setTyping(false);
+      });
+    } else {
+      setClientsList([]);
+    }
+  };
+
+  const fun_AddProduct = (item) => {
     if (!isNaN(TextCant)) {
-      Pro.Cant = parseFloat(TextCant);
+      item.Cant = parseFloat(TextCant);
 
       setProductos_Invoce((prev) => {
         const Lis = prev.map((s) => s);
-        Lis.push(Pro);
+        Lis.push(item);
         return Lis;
       });
 
-      if (Pro.type == T_Ser) Pro.products = ProductoService;
+      if (item.type == T_Ser) item.products = ProductoService;
 
-      let price = Pro.type == T_Ser ? Pro.base_price : Pro.price;
+      let price = item.type == T_Ser ? item.base_price : item.price;
 
-      SetPrecioTotal((prev) => prev + price * Pro.Cant);
-      SetTextSearch("");
+      SetPrecioTotal((prev) => prev + price * item.Cant);
+      SetTextSearchPro("");
       SetTextCant("");
       setProductoService([]);
       setProductoSelect(null);
@@ -70,9 +90,15 @@ function Billinvoices_Page() {
       });
     }
     SetTextCant(1);
-    SetTextSearch(Pro.name);
+    SetTextSearchPro(Pro.name);
     setProducto([]);
     setProductoSelect(Pro);
+  };
+
+  const fun_SelectCli = (Cli) => {
+    setClientsList([]);
+    setClientSelect(Cli);
+    SetTextSearchCli("");
   };
 
   const CambiarSimbo = (Txt) => {
@@ -100,7 +126,6 @@ function Billinvoices_Page() {
         });
 
         setProductoService(ax_pro);
-        //ax.setProductoService((prev));
       }
     }
   };
@@ -111,19 +136,57 @@ function Billinvoices_Page() {
       <hr />
       <form>
         <div>
+          <label htmlFor="ClientName">Buscar Cliente:</label>
+          <input
+            type="text"
+            name="ClientName"
+            id="ClientName"
+            value={TextSearchCli}
+            onChange={(e) => {
+              SetTextSearchCli(e.target.value);
+              fun_SeachCli(e.target.value);
+            }}
+          />
+          {ClientSelect ? (
+            <>
+              <p>
+                °{ClientSelect.name} : {ClientSelect.cedula}°
+              </p>
+            </>
+          ) : (
+            <>
+              <ul>
+                {ClientsList.map((c) => (
+                  <li>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        fun_SelectCli(c);
+                      }}
+                    >
+                      {c.name} : {c.cedula}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        <hr />
+        <div>
           <label htmlFor="ProductName">Buscar Producto:</label>
           <input
             type="text"
             name="ProductName"
             id="ProductName"
-            value={TextSearch}
+            value={TextSearchPro}
             onChange={(e) => {
-              SetTextSearch(e.target.value);
-              fun_Seach(e.target.value);
+              SetTextSearchPro(e.target.value);
+              fun_SeachPro(e.target.value);
             }}
           />
           <ul>
-            {Producto.map((p) => (
+            {Producto_List.map((p) => (
               <li key={p.id}>
                 <button
                   onClick={(e) => {
@@ -154,8 +217,8 @@ function Billinvoices_Page() {
           value={TextCant}
           onChange={(e) => {
             SetTextCant(e.target.value);
-            if (ProductoSelect)
-              fun_AddCantPro_Service(ProductoSelect, e.target.value);
+            if (ProductSelect_aux)
+              fun_AddCantPro_Service(ProductSelect_aux, e.target.value);
           }}
         />
         <hr />
@@ -172,14 +235,14 @@ function Billinvoices_Page() {
         <button
           onClick={(e) => {
             e.preventDefault();
-            fun_AddProduct(ProductoSelect);
+            fun_AddProduct(ProductSelect_aux);
           }}
         >
           Agregar
         </button>
         <hr />
         <ul>
-          {Productos_Invoce.map((p) => (
+          {Products_Invoce.map((p) => (
             <li key={p.id + "H" + p.type}>
               {p.type == T_Ser ? (
                 <span>

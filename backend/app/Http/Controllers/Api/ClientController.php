@@ -21,6 +21,13 @@ class ClientController extends Controller
         return ClientResource::collection(Client::all());
     }
 
+    public function indexLike(Request $request)
+    {
+        return ClientResource::collection(Client::where('name', 'LIKE', '%' . $request->Seach . '%')
+            ->orwhere('cedula', 'LIKE', '%' . $request->Seach . '%')
+            ->take(5)->get());
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -67,5 +74,5 @@ class ClientController extends Controller
         $clients = Client::has('debts')->withSum('debts as total_debt', 'pending_balance')->orderBy('total_debt', 'desc')->with('debts')->get();
 
         return ClientResource::collection($clients);
-    } 
+    }
 }

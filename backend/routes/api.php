@@ -37,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Rutas de CRUD
     Route::apiResource('clients', ClientController::class);
+    Route::post("/clients/Like", [ClientController::class, 'indexLike']);
+
     Route::apiResource('products', ProductController::class);
     Route::post("/products/Like", [ProductController::class, 'indexLike']);
 
@@ -60,7 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/settings/bulk', [SettingController::class, 'bulk']);
     Route::get('/settings/exchange-rates', [SettingController::class, 'getExchangeRates']);
 
-    //Rutas de calculos 
+    //Rutas de calculos
     Route::get('clientsInDebt', [ClientController::class, 'clientsInDebt']);
     Route::get('totalDebt', [DebtController::class, 'totalDebt']);
 
