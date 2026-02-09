@@ -50,8 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('debt', DebtController::class);
 
     Route::apiResource('invoices', InvoiceController::class);
-    Route::post('invoices/to_invoice', InvoiceController::class);
-    
+    Route::post('invoices/to_invoice', [InvoiceController::class, 'to_invoice']);
+
     Route::apiResource('registerClose', RegisterCloseController::class);
 
 
@@ -68,5 +68,4 @@ Route::middleware('auth:sanctum')->group(function () {
     //Rutas de calculos
     Route::get('clientsInDebt', [ClientController::class, 'clientsInDebt']);
     Route::get('totalDebt', [DebtController::class, 'totalDebt']);
-
 });

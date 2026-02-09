@@ -32,7 +32,6 @@ class InvoiceController extends Controller
 
     public function to_invoice(Request $request, Response $resp)
     {
-        //ToDo
         return response()->noContent();
     }
 
