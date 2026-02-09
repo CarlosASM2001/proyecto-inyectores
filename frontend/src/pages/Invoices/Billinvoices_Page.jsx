@@ -1,14 +1,12 @@
 import { useState } from "react";
 import api from "../../service/api_Authorization";
+import { T_Ser } from "../../Misc/Definitions";
 
 function Billinvoices_Page() {
   const formateador = new Intl.NumberFormat("es-VE", {
     style: "decimal",
     minimumFractionDigits: 2,
   });
-
-  const T_Ser = "Service";
-  const T_Pro = "Product";
 
   const TipoMoneda_Array = ["Pesos", "Dolares", "Bolivares"];
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];

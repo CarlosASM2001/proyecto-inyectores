@@ -21,8 +21,8 @@ return new class extends Migration
             $table->primary(['invoice_id', 'service_id']);
 
             $table->decimal('unitary_price', 10, 2);
-            $table->decimal('subtotal', 10, 2);
             $table->integer('quantity');
+            $table->decimal('subtotal', 10, 2);
             $table->timestamps();
         });
     }

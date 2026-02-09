@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\StoreInvoiceRequest;
 use App\Http\Requests\Update\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use Symfony\Component\HttpFoundation\Request;
 
 class InvoiceController extends Controller
 {
@@ -27,6 +28,12 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::create($request->validated());
         return new InvoiceResource($invoice);
+    }
+
+    public function to_invoice(Request $request, Response $resp)
+    {
+        //ToDo
+        return response()->noContent();
     }
 
     /**

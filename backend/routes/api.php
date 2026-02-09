@@ -48,7 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('payments', PaymentController::class);
     Route::apiResource('debt', DebtController::class);
+
     Route::apiResource('invoices', InvoiceController::class);
+    Route::post('invoices/to_invoice', InvoiceController::class);
+    
     Route::apiResource('registerClose', RegisterCloseController::class);
 
 
