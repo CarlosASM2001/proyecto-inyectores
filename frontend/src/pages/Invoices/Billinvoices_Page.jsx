@@ -1,14 +1,13 @@
 import { useState } from "react";
 import api from "../../service/api_Authorization";
+import { T_Ser } from "../../Misc/Definitions";
+import Facturar from "../../service/Invoices/Facturar";
 
 function Billinvoices_Page() {
   const formateador = new Intl.NumberFormat("es-VE", {
     style: "decimal",
     minimumFractionDigits: 2,
   });
-
-  const T_Ser = "Service";
-  const T_Pro = "Product";
 
   const TipoMoneda_Array = ["Pesos", "Dolares", "Bolivares"];
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
@@ -27,9 +26,11 @@ function Billinvoices_Page() {
   const [TextSearchCli, SetTextSearchCli] = useState("");
   const [TextCant, SetTextCant] = useState("");
   const [TextPagado, SetTextPagado] = useState(0);
+  const [Msg_Fact, SetMsg_Fact] = useState("...");
 
-  const [Cambio, SetCambio] = useState(1);
   const [PrecioTotal, SetPrecioTotal] = useState(0);
+  const [Cambio, SetCambio] = useState(1);
+  const [TipoMoneda_value, SetTipoMoneda_value] = useState(1);
 
   const [TipoMoneda, SetTipoMoneda] = useState(TipoMoneda_Array[0]);
   const [TipoMoneda_sim, SetTipoMoneda_sim] = useState(TipoMoneda_Array_Sim[0]);
@@ -127,8 +128,10 @@ function Billinvoices_Page() {
     const cm = localStorage.getItem(TipoMonedaKey_Array[n]);
     if (cm != null) {
       SetCambio(1 / cm);
+      SetTipoMoneda_value(cm);
     } else {
       SetCambio(1);
+      SetTipoMoneda_value(1);
     }
   };
 
@@ -164,6 +167,16 @@ function Billinvoices_Page() {
     setProductos_Invoce((prev) => {
       return prev.filter((p) => p.id != item.id);
     });
+  };
+
+  const to_invoice = async () => {
+    const resp = await Facturar(Products_Invoce, ClientSelect, PrecioTotal, {
+      amount: parseFloat(TextPagado),
+      currency: TipoMoneda,
+      reference: TipoMoneda_value,
+    });
+
+    SetMsg_Fact(resp.msg);
   };
 
   return (
@@ -337,7 +350,6 @@ function Billinvoices_Page() {
                   </button>
                   <ul>
                     {item.products.map((p1) => {
-                      console.log(p1);
                       return (
                         <li key={p1.id + "Sp" + item.id}>
                           {p1.name} : {p1.quantity_ ?? p1.quantity} :{" "}
@@ -420,7 +432,15 @@ function Billinvoices_Page() {
             <span>{TipoMoneda_sim}</span>
           </li>
         </ul>
-        <button>Facturar</button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            to_invoice();
+          }}
+        >
+          Facturar
+        </button>
+        {Msg_Fact != "" && <p>{Msg_Fact}</p>}
       </form>
     </>
   );

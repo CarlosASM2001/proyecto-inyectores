@@ -26,7 +26,6 @@ class StorePaymentRequest extends FormRequest
             'amount' => ['numeric', 'required'],
             'currency' => ['string', 'required', 'min:3'],
             'reference' => ['numeric', 'required', 'min:0'],
-            'payment_method' => ['string', 'required', 'max:255'],
             'description' => ['string', 'required', 'max:255'],
             'invoice_id' => ['required', 'integer', 'exists:invoices,id']
         ];

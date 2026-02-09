@@ -16,7 +16,6 @@ class Payment extends Model
         "amount",
         "currency",
         "reference",
-        "payment_method",
         "description",
         "invoice_id",
         'register_close_id'
