@@ -15,6 +15,7 @@ use App\Http\Requests\Store\StoreInvoiceRequest;
 use App\Http\Requests\Store\StoreToInvoiceRequest;
 use App\Http\Requests\Update\UpdateInvoiceRequest;
 use App\Http\Resources\InvoiceResource;
+use Exception;
 
 class InvoiceController extends Controller
 {
@@ -46,6 +47,11 @@ class InvoiceController extends Controller
                 // 1. Determine invoice type based on content
                 $onlyProducts = count($request->producs) > 0 && count($request->services) == 0;
                 $onlyServices = count($request->producs) == 0 && count($request->services) > 0;
+
+                if (count($request->producs) == 0 && count($request->services) == 0) {
+                    throw new Exception("La factura debe contener al menos un producto o servicio");
+                }
+
                 $invoiceType = $onlyProducts ? 'sale' : ($onlyServices ? 'service' : 'mixed');
 
                 // 2. Create invoice with initial 'pending' status
@@ -121,19 +127,21 @@ class InvoiceController extends Controller
                 }
 
                 // 5. Process payment with currency conversion
-                $paymentInCOP = $request->pagos['amount'] * $request->pagos['reference'];
+                $paymentInCOP = $request->pagos['amount'] / $request->pagos['reference'];
                 $totalInCOP = $request->totalPagar;
-
+                $payment = null;
                 // Create payment record
-                $payment = Payment::create([
-                    'date' => now(),
-                    'amount' => $request->pagos['amount'],
-                    'currency' => $request->pagos['currency'],
-                    'reference' => $request->pagos['reference'],
-                    'description' => 'Pago de factura en ' . $request->pagos['currency'],
-                    'invoice_id' => $invoice->id,
-                    'register_close_id' => null
-                ]);
+                if ($paymentInCOP > 0) {
+                    $payment = Payment::create([
+                        'date' => now(),
+                        'amount' => $request->pagos['amount'],
+                        'currency' => $request->pagos['currency'],
+                        'reference' => $request->pagos['reference'],
+                        'description' => 'Pago de factura en ' . $request->pagos['currency'],
+                        'invoice_id' => $invoice->id,
+                        'register_close_id' => null
+                    ]);
+                }
 
                 // 6. Handle debt if payment is less than total
                 if ($paymentInCOP < $totalInCOP) {
@@ -158,7 +166,6 @@ class InvoiceController extends Controller
                     'message' => 'Factura creada y procesada exitosamente',
                     'invoice' => new InvoiceResource($invoice->load(['Products', 'Services', 'Payment', 'Debt']))
                 ], 201);
-
             });
         } catch (\Exception $e) {
             return response()->json([
