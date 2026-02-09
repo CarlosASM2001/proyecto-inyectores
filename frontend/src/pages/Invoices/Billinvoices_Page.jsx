@@ -14,8 +14,8 @@ function Billinvoices_Page() {
   const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
   const TipoMoneda_Array_Sim = ["COP", "$", "BS"];
 
-  const [Producto_List, setProducto] = useState([]);
-  const [ProductSelect_aux, setProductoSelect] = useState();
+  const [Producto_List, setProducto_List] = useState([]);
+  const [ProductSelect_aux, setProductSelect_aux] = useState();
   const [Products_Invoce, setProductos_Invoce] = useState([]);
   const [ProductoService, setProductoService] = useState([]);
 
@@ -37,20 +37,22 @@ function Billinvoices_Page() {
   const fun_SeachPro = (Text) => {
     if (Text.length > 2 && !Typing) {
       setTyping(true);
+      setProductSelect_aux(null);
       setProductoService([]);
       api.post("/products/Like", { Seach: Text }).then((res) => {
         api.post("/services/Like", { Seach: Text }).then((res1) => {
-          setProducto((prev) => {
+          setProducto_List((prev) => {
             const Nw = prev.map((p) => p);
             res1.data.data.map((s) => Nw.push(s));
             setTyping(false);
             return Nw;
           });
         });
-        setProducto(res.data.data);
+        setProducto_List(res.data.data);
       });
     } else {
-      setProducto([]);
+      setProducto_List([]);
+      setProductSelect_aux(null);
     }
   };
 
@@ -65,6 +67,7 @@ function Billinvoices_Page() {
       });
     } else {
       setClientsList([]);
+      setClientSelect(null);
     }
   };
 
@@ -80,34 +83,35 @@ function Billinvoices_Page() {
 
       if (item.type == T_Ser) {
         item.products = ProductoService;
-        let SubTotalPro = parseFloat(item.base_price);
-        SubTotalPro += ProductoService.reduce(
-          (Sum, p) => Sum + (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity),
-          0,
-        );
-        item.subtotal = SubTotalPro;
+        SetPrecioTotal((prev) => prev + item.subtotal);
+      } else {
+        SetPrecioTotal((prev) => prev + item.price * item.quantity);
       }
 
-      let price = item.type == T_Ser ? item.subtotal : item.price;
-
-      SetPrecioTotal((prev) => prev + price * item.quantity);
       SetTextSearchPro("");
       SetTextCant("");
       setProductoService([]);
-      setProductoSelect(null);
+      setProductSelect_aux(null);
     }
   };
 
   const fun_SelectProduct = (Pro) => {
     if (Pro.type == T_Ser) {
       api.get("/services/" + Pro.id + "/products").then((res) => {
-        setProductoService(res.data.data);
+        const Pros_ser = res.data.data;
+        let SubTotalPro = parseFloat(Pro.base_price);
+        SubTotalPro += Pros_ser.reduce(
+          (Sum, p) => Sum + (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity),
+          0,
+        );
+        Pro.subtotal = SubTotalPro;
+        setProductoService(Pros_ser);
       });
     }
     SetTextCant(1);
-    SetTextSearchPro(Pro.name);
-    setProducto([]);
-    setProductoSelect(Pro);
+    SetTextSearchPro("");
+    setProducto_List([]);
+    setProductSelect_aux(Pro);
   };
 
   const fun_SelectCli = (Cli) => {
@@ -128,21 +132,38 @@ function Billinvoices_Page() {
     }
   };
 
-  const fun_AddCantPro_Service = (Pro, cant) => {
-    if (Pro.type == T_Ser) {
+  const fun_AddCantPro_Service = (item, cant) => {
+    const c = parseFloat(cant);
+    if (item.type == T_Ser) {
       if (parseFloat(cant) != null) {
-        console.log(cant);
-        const c = parseFloat(cant);
+        item.base_price_ = parseFloat(item.base_price) * c;
 
+        let axPrice = 0;
         let ax_pro = ProductoService.map((p) => {
           p.price_ = p.price * c;
           p.quantity_ = p.quantity * c;
+          axPrice += (p.price + p.quantity) * c;
           return p;
         });
 
+        item.subtotal = axPrice + parseFloat(item.base_price);
+
         setProductoService(ax_pro);
       }
+    } else {
+      item.price_ = item.price * c;
     }
+  };
+
+  const fun_deleteProService = (item) => {
+    if (item.type == T_Ser) {
+      SetPrecioTotal((prev) => prev - item.subtotal);
+    } else {
+      SetPrecioTotal((prev) => prev - (item.price_ ?? item.price));
+    }
+    setProductos_Invoce((prev) => {
+      return prev.filter((p) => p.id != item.id);
+    });
   };
 
   return (
@@ -200,29 +221,76 @@ function Billinvoices_Page() {
               fun_SeachPro(e.target.value);
             }}
           />
-          <ul>
-            {Producto_List.map((p) => (
-              <li key={p.id}>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    fun_SelectProduct(p);
-                  }}
-                >
-                  {p.type == T_Ser ? (
-                    <span>
-                      {p.name} : {formateador.format(p.base_price)}
-                    </span>
-                  ) : (
-                    <span>
-                      {p.name} : {formateador.format(p.price)} :{" "}
-                      {formateador.format(p.actual_stock)}
-                    </span>
+          {ProductSelect_aux ? (
+            <>
+              {ProductSelect_aux.type == T_Ser ? (
+                <div>
+                  <p>
+                    {ProductSelect_aux.name} :{" "}
+                    {formateador.format(
+                      ProductSelect_aux.base_price_ ??
+                        ProductSelect_aux.base_price,
+                    )}
+                  </p>
+                  {ProductoService.length > 0 && (
+                    <div>
+                      <p>---</p>
+                      <ul>
+                        {ProductoService.length > 0 &&
+                          ProductoService.map((p) => (
+                            <li>
+                              {p.name} |{" "}
+                              {formateador.format(p.quantity_ ?? p.quantity)} |{" "}
+                              {formateador.format(
+                                (p.price_ ?? p.price) *
+                                  (p.quantity_ ?? p.quantity) *
+                                  Cambio,
+                              )}
+                            </li>
+                          ))}
+                      </ul>
+                      <p>
+                        Sub Total:{" "}
+                        {formateador.format(ProductSelect_aux.subtotal)}
+                      </p>
+                    </div>
                   )}
-                </button>
-              </li>
-            ))}
-          </ul>
+                </div>
+              ) : (
+                <p>
+                  {ProductSelect_aux.name} :{" "}
+                  {formateador.format(
+                    ProductSelect_aux.price_ ?? ProductSelect_aux.price,
+                  )}{" "}
+                  : {formateador.format(ProductSelect_aux.actual_stock)}
+                </p>
+              )}
+            </>
+          ) : (
+            <ul>
+              {Producto_List.map((p) => (
+                <li key={p.id}>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      fun_SelectProduct(p);
+                    }}
+                  >
+                    {p.type == T_Ser ? (
+                      <span>
+                        {p.name} : {formateador.format(p.base_price)}
+                      </span>
+                    ) : (
+                      <span>
+                        {p.name} : {formateador.format(p.price)} :{" "}
+                        {formateador.format(p.actual_stock)}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <hr />
         <label htmlFor="Cant">Cantidad Del Producto</label>
@@ -238,18 +306,6 @@ function Billinvoices_Page() {
           }}
         />
         <hr />
-        <ul>
-          {ProductoService.length > 0 &&
-            ProductoService.map((p) => (
-              <li>
-                {p.name} | {formateador.format(p.quantity_ ?? p.quantity)} |{" "}
-                {formateador.format(
-                  (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity) * Cambio,
-                )}
-              </li>
-            ))}
-        </ul>
-        <hr />
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -260,20 +316,30 @@ function Billinvoices_Page() {
         </button>
         <hr />
         <ul>
-          {Products_Invoce.map((p) => (
-            <li key={p.id + "_" + p.type}>
-              {p.type == T_Ser ? (
+          {Products_Invoce.map((item) => (
+            <li key={item.id + "_" + item.type}>
+              {item.type == T_Ser ? (
                 <div>
                   <span>
-                    {p.name} : {p.quantity} :{" "}
-                    {formateador.format(p.base_price * p.quantity * Cambio)}{" "}
+                    {item.name} : {item.quantity} :{" "}
+                    {formateador.format(
+                      item.base_price * item.quantity * Cambio,
+                    )}{" "}
                     :{" "}
                   </span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      fun_deleteProService(item);
+                    }}
+                  >
+                    Borrar
+                  </button>
                   <ul>
-                    {p.products.map((p1) => {
+                    {item.products.map((p1) => {
                       console.log(p1);
                       return (
-                        <li key={p1.id + "Sp" + p.id}>
+                        <li key={p1.id + "Sp" + item.id}>
                           {p1.name} : {p1.quantity_ ?? p1.quantity} :{" "}
                           {formateador.format(
                             (p1.price_ ?? p1.price) *
@@ -287,10 +353,21 @@ function Billinvoices_Page() {
                   </ul>
                 </div>
               ) : (
-                <span>
-                  {p.name} : {p.quantity} :{" "}
-                  {formateador.format(p.price * p.quantity * Cambio)} :{" "}
-                </span>
+                <>
+                  <span>
+                    {item.name} : {item.quantity} :{" "}
+                    {formateador.format(item.price * item.quantity * Cambio)}{" "}
+                    :{" "}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      fun_deleteProService(item);
+                    }}
+                  >
+                    Borrar
+                  </button>
+                </>
               )}
             </li>
           ))}
