@@ -257,10 +257,6 @@ export default function Billinvoices_Page() {
           <FileText className="inline mr-3 h-8 w-8 text-workshop-red" />
           Facturación
         </h1>
-        <p className="text-gray-500 max-w-2xl">
-          Gestiona ventas de productos y servicios, con soporte para múltiples
-          monedas y cálculo automático de tasas de cambio.
-        </p>
       </div>
 
       {/* Notificaciones */}
