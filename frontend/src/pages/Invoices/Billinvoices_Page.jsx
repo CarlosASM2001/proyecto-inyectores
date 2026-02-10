@@ -1,449 +1,401 @@
 import { useState } from "react";
 import api from "../../service/api_Authorization";
-import { T_Ser } from "../../Misc/Definitions";
+import useCurrency from "../../hooks/useCurrency";
+import { T_Pro, T_Ser } from "../../Misc/Definitions";
 import Facturar from "../../service/Invoices/Facturar";
+import ClientSearch from "../../components/Invoices/ClientSearch";
+import ProductSearch from "../../components/Invoices/ProductSearch";
+import CartSummary from "../../components/Invoices/CartSummary";
+import PaymentSection from "../../components/Invoices/PaymentSection";
+import { FileText, UserCircle, Package, CheckCircle } from "lucide-react";
+import { CURRENCIES } from "../../hooks/useCurrency";
 
-function Billinvoices_Page() {
-  const formateador = new Intl.NumberFormat("es-VE", {
-    style: "decimal",
-    minimumFractionDigits: 2,
+export default function Billinvoices_Page() {
+  // Estado del cliente
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [clientSearchText, setClientSearchText] = useState("");
+
+  // Estado de productos
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productQuantity, setProductQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // Estado del carrito
+  const [cartItems, setCartItems] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [notification, setNotification] = useState({
+    show: false,
+    type: "",
+    message: "",
   });
 
-  const TipoMoneda_Array = ["Pesos", "Dolares", "Bolivares"];
-  const TipoMonedaKey_Array = ["", "exchange_rate_usd", "exchange_rate_ves"];
-  const TipoMoneda_Array_Sim = ["COP", "$", "BS"];
+  // Estado de pago
+  const [amountPaid, setAmountPaid] = useState(0);
+  const [paidCurrency, setPaidCurrency] = useState(CURRENCIES.PESOS);
+  const [paymentExchangeRate, setPaymentExchangeRate] = useState(1);
+  const [paymentMessage, setPaymentMessage] = useState("");
 
-  const [Producto_List, setProducto_List] = useState([]);
-  const [ProductSelect_aux, setProductSelect_aux] = useState();
-  const [Products_Invoce, setProductos_Invoce] = useState([]);
-  const [ProductoService, setProductoService] = useState([]);
+  // Hook de moneda
+  const {
+    currentCurrency,
+    exchangeRate,
+    formatCurrency,
+    changeCurrency,
+    convertCurrency,
+  } = useCurrency();
 
-  const [ClientsList, setClientsList] = useState([]);
-  const [ClientSelect, setClientSelect] = useState();
-
-  const [Typing, setTyping] = useState(false);
-  const [TextSearchPro, SetTextSearchPro] = useState("");
-  const [TextSearchCli, SetTextSearchCli] = useState("");
-  const [TextCant, SetTextCant] = useState("");
-  const [TextPagado, SetTextPagado] = useState(0);
-  const [Msg_Fact, SetMsg_Fact] = useState("...");
-
-  const [PrecioTotal, SetPrecioTotal] = useState(0);
-  const [Cambio, SetCambio] = useState(1);
-  const [TipoMoneda_value, SetTipoMoneda_value] = useState(1);
-
-  const [TipoMoneda, SetTipoMoneda] = useState(TipoMoneda_Array[0]);
-  const [TipoMoneda_sim, SetTipoMoneda_sim] = useState(TipoMoneda_Array_Sim[0]);
-
-  const fun_SeachPro = (Text) => {
-    if (Text.length > 2 && !Typing) {
-      setTyping(true);
-      setProductSelect_aux(null);
-      setProductoService([]);
-      api.post("/products/Like", { Seach: Text }).then((res) => {
-        api.post("/services/Like", { Seach: Text }).then((res1) => {
-          setProducto_List((prev) => {
-            const Nw = prev.map((p) => p);
-            res1.data.data.map((s) => Nw.push(s));
-            setTyping(false);
-            return Nw;
-          });
-        });
-        setProducto_List(res.data.data);
-      });
-    } else {
-      setProducto_List([]);
-      setProductSelect_aux(null);
-    }
-  };
-
-  const fun_SeachCli = (txt) => {
-    if (txt.length > 2 && !Typing) {
-      setClientSelect(null);
-      setTyping(true);
-      setClientsList([]);
-      api.post("/clients/Like", { Seach: txt }).then((resp) => {
-        setClientsList(resp.data.data);
-        setTyping(false);
-      });
-    } else {
-      setClientsList([]);
-      setClientSelect(null);
-    }
-  };
-
-  const fun_AddProduct = (item) => {
-    if (!isNaN(TextCant)) {
-      item.quantity = parseFloat(TextCant);
-
-      setProductos_Invoce((prev) => {
-        const Lis = prev.map((s) => s);
-        Lis.push(item);
-        return Lis;
-      });
-
-      if (item.type == T_Ser) {
-        item.products = ProductoService;
-        SetPrecioTotal((prev) => prev + item.subtotal);
+  // Calcular total del carrito
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => {
+      if (item.type === T_Ser) {
+        return total + item.subtotal * item.quantity;
       } else {
-        SetPrecioTotal((prev) => prev + item.price * item.quantity);
+        return total + item.price * item.quantity;
+      }
+    }, 0);
+  };
+
+  const total = calculateTotal();
+
+  // Handlers de cliente
+  const handleClientSelect = (client) => {
+    setSelectedClient(client);
+    setClientSearchText("");
+  };
+
+  const handleClientClear = () => {
+    setSelectedClient(null);
+    setClientSearchText("");
+  };
+
+  // Handlers de productos
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product);
+    setProductQuantity(1);
+  };
+
+  const handleProductClear = () => {
+    setSelectedProduct(null);
+    setProductQuantity(1);
+  };
+
+  const handleQuantityChange = (quantity) => {
+    setProductQuantity(Math.max(1, quantity));
+  };
+
+  const handleAddToCart = async () => {
+    if (!selectedProduct) return;
+
+    setIsAdding(true);
+    try {
+      let itemToAdd = { ...selectedProduct, quantity: productQuantity };
+
+      // Si es un servicio, cargar sus productos asociados
+      if (selectedProduct.type === T_Ser) {
+        try {
+          const response = await api.get(
+            `/services/${selectedProduct.id}/products`,
+          );
+          const products = response.data.data || [];
+          let subtotal = parseFloat(selectedProduct.base_price);
+          subtotal += products.reduce((sum, p) => {
+            return sum + p.price * (p.quantity || 1);
+          }, 0);
+
+          itemToAdd = {
+            ...itemToAdd,
+            products: products,
+            subtotal: subtotal,
+            base_price_: selectedProduct.base_price * productQuantity,
+            price: selectedProduct.base_price * productQuantity,
+          };
+
+          // Actualizar productos del servicio con cantidad
+          if (products.length > 0) {
+            itemToAdd.products = products.map((p) => ({
+              ...p,
+              quantity_: p.quantity * productQuantity,
+              price_: p.price * productQuantity,
+            }));
+          }
+        } catch (error) {
+          console.error("Error obteniendo productos del servicio:", error);
+          itemToAdd.subtotal = selectedProduct.base_price * productQuantity;
+          itemToAdd.price = selectedProduct.base_price * productQuantity;
+          itemToAdd.products = [];
+        }
+      } else {
+        // Para productos, simplemente multiplicar el precio
+        itemToAdd.price = selectedProduct.price * productQuantity;
       }
 
-      SetTextSearchPro("");
-      SetTextCant("");
-      setProductoService([]);
-      setProductSelect_aux(null);
+      // Agregar al carrito
+      setCartItems((prev) => [...prev, itemToAdd]);
+
+      // Limpiar selección
+      setSelectedProduct(null);
+      setProductQuantity(1);
+
+      // Notificar éxito
+      showNotification(
+        "success",
+        `${selectedProduct.type === T_Ser ? "Servicio" : "Producto"} agregado al carrito`,
+      );
+    } catch (error) {
+      console.error("Error agregando al carrito:", error);
+      showNotification("error", "Error al agregar al carrito");
+    } finally {
+      setIsAdding(false);
     }
   };
 
-  const fun_SelectProduct = (Pro) => {
-    if (Pro.type == T_Ser) {
-      api.get("/services/" + Pro.id + "/products").then((res) => {
-        const Pros_ser = res.data.data;
-        let SubTotalPro = parseFloat(Pro.base_price);
-        SubTotalPro += Pros_ser.reduce(
-          (Sum, p) => Sum + (p.price_ ?? p.price) * (p.quantity_ ?? p.quantity),
-          0,
-        );
-        Pro.subtotal = SubTotalPro;
-        setProductoService(Pros_ser);
-      });
+  // Handler para eliminar del carrito
+  const handleRemoveFromCart = (itemToRemove) => {
+    setCartItems((prev) =>
+      prev.filter(
+        (item) =>
+          !(item.id === itemToRemove.id && item.type === itemToRemove.type),
+      ),
+    );
+    showNotification("info", "Item removido del carrito");
+  };
+
+  // Handler de pago
+  const handleProcessPayment = async () => {
+    if (!selectedClient) {
+      showNotification("error", "Debes seleccionar un cliente primero");
+      return;
     }
-    SetTextCant(1);
-    SetTextSearchPro("");
-    setProducto_List([]);
-    setProductSelect_aux(Pro);
-  };
 
-  const fun_SelectCli = (Cli) => {
-    setClientsList([]);
-    setClientSelect(Cli);
-    SetTextSearchCli("");
-  };
-
-  const CambiarSimbo = (Txt) => {
-    const n = TipoMoneda_Array.findIndex((t) => t == Txt);
-    SetTipoMoneda(TipoMoneda_Array[n]);
-    SetTipoMoneda_sim(TipoMoneda_Array_Sim[n]);
-    const cm = localStorage.getItem(TipoMonedaKey_Array[n]);
-    if (cm != null) {
-      SetCambio(1 / cm);
-      SetTipoMoneda_value(cm);
-    } else {
-      SetCambio(1);
-      SetTipoMoneda_value(1);
+    if (cartItems.length === 0) {
+      showNotification(
+        "error",
+        "Debes agregar al menos un producto o servicio",
+      );
+      return;
     }
-  };
 
-  const fun_AddCantPro_Service = (item, cant) => {
-    const c = parseFloat(cant);
-    if (item.type == T_Ser) {
-      if (parseFloat(cant) != null) {
-        item.base_price_ = parseFloat(item.base_price) * c;
+    if (amountPaid <= 0 || isNaN(amountPaid)) {
+      showNotification("error", "Debes ingresar un monto de pago válido");
+      return;
+    }
 
-        let axPrice = 0;
-        let ax_pro = ProductoService.map((p) => {
-          p.price_ = p.price * c;
-          p.quantity_ = p.quantity * c;
-          axPrice += (p.price + p.quantity) * c;
-          return p;
-        });
+    setIsProcessing(true);
+    try {
+      const totalInCOP = calculateTotal();
+      const amountPaidInCOP = amountPaid / paymentExchangeRate;
 
-        item.subtotal = axPrice + parseFloat(item.base_price);
+      const paymentInfo = {
+        amount: amountPaidInCOP,
+        currency: paidCurrency.name,
+        reference: paymentExchangeRate.toFixed(4),
+      };
 
-        setProductoService(ax_pro);
+      const result = await Facturar(
+        cartItems,
+        selectedClient,
+        totalInCOP,
+        paymentInfo,
+      );
+
+      if (result.msg.includes("correctamente")) {
+        showNotification("success", "¡Factura generada exitosamente!");
+
+        // Limpiar formulario
+        setCartItems([]);
+        setSelectedClient(null);
+        setClientSearchText("");
+        setAmountPaid(0);
+
+        // Retrasar notificación para mejor UX
+        setTimeout(() => {
+          setPaymentMessage(result.msg);
+        }, 1000);
+
+        setTimeout(() => {
+          setPaymentMessage("");
+        }, 5000);
+      } else {
+        showNotification("error", result.msg);
       }
-    } else {
-      item.price_ = item.price * c;
+    } catch (error) {
+      console.error("Error al facturar:", error);
+      showNotification("error", "Error al procesar la factura");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const fun_deleteProService = (item) => {
-    if (item.type == T_Ser) {
-      SetPrecioTotal((prev) => prev - item.subtotal);
-    } else {
-      SetPrecioTotal((prev) => prev - (item.price_ ?? item.price));
-    }
-    setProductos_Invoce((prev) => {
-      return prev.filter((p) => p.id != item.id);
-    });
+  // Notificaciones
+  const showNotification = (type, message) => {
+    setNotification({ show: true, type, message });
+    setTimeout(
+      () => setNotification({ show: false, type: "", message: "" }),
+      3000,
+    );
   };
 
-  const to_invoice = async () => {
-    const resp = await Facturar(Products_Invoce, ClientSelect, PrecioTotal, {
-      amount: parseFloat(TextPagado),
-      currency: TipoMoneda,
-      reference: TipoMoneda_value,
-    });
+  // Handlers de cambio de moneda
+  const handlePaymentCurrencyChange = (currencyName) => {
+    const selectedCurrency = changeCurrency(currencyName);
+    setPaidCurrency(selectedCurrency);
+  };
 
-    SetMsg_Fact(resp.msg);
+  const handlePaymentExchangeRateChange = (rate) => {
+    setPaymentExchangeRate(rate);
+  };
+
+  const handleAmountPaidChange = (amount) => {
+    setAmountPaid(parseFloat(amount) || 0);
   };
 
   return (
-    <>
-      <h1>Facturación</h1>
-      <hr />
-      <form>
-        <div>
-          <label htmlFor="ClientName">Buscar Cliente:</label>
-          <input
-            type="text"
-            name="ClientName"
-            id="ClientName"
-            value={TextSearchCli}
-            onChange={(e) => {
-              SetTextSearchCli(e.target.value);
-              fun_SeachCli(e.target.value);
-            }}
-          />
-          {ClientSelect ? (
-            <>
-              <p>
-                °{ClientSelect.name} : {ClientSelect.cedula}°
-              </p>
-            </>
-          ) : (
-            <>
-              <ul>
-                {ClientsList.map((c) => (
-                  <li>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        fun_SelectCli(c);
-                      }}
-                    >
-                      {c.name} : {c.cedula}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+    <div className="max-w-7xl mx-auto space-y-8 p-4 md:p-8">
+      {/* Encabezado */}
+      <div className="text-center md:text-left">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-gray-900 uppercase mb-2">
+          <FileText className="inline mr-3 h-8 w-8 text-workshop-red" />
+          Facturación
+        </h1>
+        <p className="text-gray-500 max-w-2xl">
+          Gestiona ventas de productos y servicios, con soporte para múltiples
+          monedas y cálculo automático de tasas de cambio.
+        </p>
+      </div>
+
+      {/* Notificaciones */}
+      {notification.show && (
+        <div
+          className={`rounded-xl p-4 border-l-4 ${
+            notification.type === "success"
+              ? "bg-green-50 border-green-400 text-green-800"
+              : notification.type === "error"
+                ? "bg-red-50 border-red-400 text-red-800"
+                : "bg-blue-50 border-blue-400 text-blue-800"
+          }`}
+        >
+          {notification.message}
         </div>
-        <hr />
-        <div>
-          <label htmlFor="ProductName">Buscar Producto:</label>
-          <input
-            type="text"
-            name="ProductName"
-            id="ProductName"
-            value={TextSearchPro}
-            onChange={(e) => {
-              SetTextSearchPro(e.target.value);
-              fun_SeachPro(e.target.value);
-            }}
-          />
-          {ProductSelect_aux ? (
-            <>
-              {ProductSelect_aux.type == T_Ser ? (
-                <div>
-                  <p>
-                    {ProductSelect_aux.name} :{" "}
-                    {formateador.format(
-                      ProductSelect_aux.base_price_ ??
-                        ProductSelect_aux.base_price,
-                    )}
-                  </p>
-                  {ProductoService.length > 0 && (
-                    <div>
-                      <p>---</p>
-                      <ul>
-                        {ProductoService.length > 0 &&
-                          ProductoService.map((p) => (
-                            <li>
-                              {p.name} |{" "}
-                              {formateador.format(p.quantity_ ?? p.quantity)} |{" "}
-                              {formateador.format(
-                                (p.price_ ?? p.price) *
-                                  (p.quantity_ ?? p.quantity) *
-                                  Cambio,
-                              )}
-                            </li>
-                          ))}
-                      </ul>
-                      <p>
-                        Sub Total:{" "}
-                        {formateador.format(ProductSelect_aux.subtotal)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p>
-                  {ProductSelect_aux.name} :{" "}
-                  {formateador.format(
-                    ProductSelect_aux.price_ ?? ProductSelect_aux.price,
-                  )}{" "}
-                  : {formateador.format(ProductSelect_aux.actual_stock)}
+      )}
+
+      {/* Grid principal */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Columna izquierda: Selección de cliente y productos */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Sección de cliente */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                <UserCircle className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="font-black text-gray-900 uppercase tracking-tighter text-lg">
+                  Cliente
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Selecciona al cliente que recibirá la factura
                 </p>
-              )}
-            </>
-          ) : (
-            <ul>
-              {Producto_List.map((p) => (
-                <li key={p.id}>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      fun_SelectProduct(p);
-                    }}
-                  >
-                    {p.type == T_Ser ? (
-                      <span>
-                        {p.name} : {formateador.format(p.base_price)}
-                      </span>
-                    ) : (
-                      <span>
-                        {p.name} : {formateador.format(p.price)} :{" "}
-                        {formateador.format(p.actual_stock)}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
+              </div>
+            </div>
+
+            <ClientSearch
+              searchText={clientSearchText}
+              onSearchTextChange={setClientSearchText}
+              selectedClient={selectedClient}
+              onClientSelect={handleClientSelect}
+              onClear={handleClientClear}
+            />
+          </div>
+
+          {/* Sección de productos */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                <Package className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <h2 className="font-black text-gray-900 uppercase tracking-tighter text-lg">
+                  Productos y Servicios
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Busca productos o servicios para agregar al carrito
+                </p>
+              </div>
+            </div>
+
+            <ProductSearch
+              selectedProduct={selectedProduct}
+              quantity={productQuantity}
+              onProductSelect={handleProductSelect}
+              onQuantityChange={handleQuantityChange}
+              onClear={handleProductClear}
+            />
+
+            {/* Botón agregar al carrito */}
+            {selectedProduct && (
+              <div className="mt-6">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isAdding || !selectedProduct}
+                  className={`w-full py-4 px-6 rounded-xl font-black uppercase text-sm tracking-wider transition-all ${
+                    isAdding || !selectedProduct
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-workshop-dark hover:bg-workshop-red active:bg-red-700 shadow-lg hover:shadow-red-500/20 text-white"
+                  }`}
+                >
+                  {isAdding ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Agregando...
+                    </div>
+                  ) : (
+                    "AGREGAR AL CARRITO"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Columna derecha: Resumen y pago */}
+        <div className="space-y-6 lg:sticky lg:top-8">
+          {/* Resumen del carrito */}
+          <CartSummary
+            items={cartItems}
+            onRemoveItem={handleRemoveFromCart}
+            baseCurrency={paidCurrency}
+            exchangeRate={paymentExchangeRate}
+          />
+
+          {/* Sección de pago */}
+          <PaymentSection
+            total={total}
+            paidAmount={amountPaid}
+            onPaidAmountChange={handleAmountPaidChange}
+            currency={paidCurrency}
+            onCurrencyChange={handlePaymentCurrencyChange}
+            exchangeRate={paymentExchangeRate}
+            onExchangeRateChange={handlePaymentExchangeRateChange}
+            onProcessPayment={handleProcessPayment}
+          />
+
+          {/* Mensaje de facturación */}
+          {paymentMessage && (
+            <div
+              className={`rounded-xl p-4 ${
+                paymentMessage.includes("correctamente")
+                  ? "bg-green-50 border border-green-200 text-green-800"
+                  : "bg-red-50 border border-red-200 text-red-800"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium">{paymentMessage}</span>
+              </div>
+            </div>
           )}
         </div>
-        <hr />
-        <label htmlFor="Cant">Cantidad Del Producto</label>
-        <input
-          type="text"
-          name="Cant"
-          id="Cantidad"
-          value={TextCant}
-          onChange={(e) => {
-            SetTextCant(e.target.value);
-            if (ProductSelect_aux)
-              fun_AddCantPro_Service(ProductSelect_aux, e.target.value);
-          }}
-        />
-        <hr />
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            fun_AddProduct(ProductSelect_aux);
-          }}
-        >
-          Agregar
-        </button>
-        <hr />
-        <ul>
-          {Products_Invoce.map((item) => (
-            <li key={item.id + "_" + item.type}>
-              {item.type == T_Ser ? (
-                <div>
-                  <span>
-                    {item.name} : {item.quantity} :{" "}
-                    {formateador.format(
-                      item.base_price * item.quantity * Cambio,
-                    )}{" "}
-                    :{" "}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      fun_deleteProService(item);
-                    }}
-                  >
-                    Borrar
-                  </button>
-                  <ul>
-                    {item.products.map((p1) => {
-                      return (
-                        <li key={p1.id + "Sp" + item.id}>
-                          {p1.name} : {p1.quantity_ ?? p1.quantity} :{" "}
-                          {formateador.format(
-                            (p1.price_ ?? p1.price) *
-                              (p1.quantity_ ?? p1.quantity) *
-                              Cambio,
-                          )}{" "}
-                          :{" "}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ) : (
-                <>
-                  <span>
-                    {item.name} : {item.quantity} :{" "}
-                    {formateador.format(item.price * item.quantity * Cambio)}{" "}
-                    :{" "}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      fun_deleteProService(item);
-                    }}
-                  >
-                    Borrar
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-        <hr />
-        <ul>
-          <li>
-            <select
-              name="TipoMoneda"
-              id="TipoMoneda"
-              onChange={(e) => {
-                CambiarSimbo(e.target.value);
-              }}
-            >
-              {TipoMoneda_Array.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </select>
-          </li>
-          <li>
-            <p>
-              Precio Total: {formateador.format(PrecioTotal * Cambio)}{" "}
-              <span>{TipoMoneda_sim}</span>
-            </p>
-          </li>
-          <li>
-            <label htmlFor="txt_CantPag">Cantidad Pagada</label>
-            <input
-              type="text"
-              name="txt_CantPag"
-              id="txt_CantPag"
-              value={TextPagado}
-              onChange={(e) => {
-                SetTextPagado(e.target.value);
-              }}
-            />
-            <span>{TipoMoneda_sim}</span>
-          </li>
-          <li>
-            <label>Restante: </label>
-            <label>
-              <span>
-                {PrecioTotal - TextPagado / Cambio > 0
-                  ? formateador.format(
-                      (PrecioTotal - TextPagado / Cambio) * Cambio,
-                    )
-                  : "---"}{" "}
-              </span>
-            </label>
-            <span>{TipoMoneda_sim}</span>
-          </li>
-        </ul>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            to_invoice();
-          }}
-        >
-          Facturar
-        </button>
-        {Msg_Fact != "" && <p>{Msg_Fact}</p>}
-      </form>
-    </>
+      </div>
+    </div>
   );
 }
-
-export default Billinvoices_Page;
