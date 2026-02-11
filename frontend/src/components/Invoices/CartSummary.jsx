@@ -9,35 +9,46 @@ export default function CartSummary({
   exchangeRate = 1,
 }) {
   const formatCurrency = (amount) => {
+    const val = parseFloat(amount) || 0;
     return new Intl.NumberFormat("es-VE", {
       style: "decimal",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(val);
   };
 
   const calculateTotal = () => {
     return items.reduce((total, item) => {
+      const quantity = parseFloat(item.quantity) || 0;
+      let price = 0;
+
       if (item.type === T_Ser) {
-        return total + item.subtotal * item.quantity;
+        price = parseFloat(item.subtotal) || 0;
       } else {
-        return total + item.price * item.quantity;
+        price = parseFloat(item.price) || 0;
       }
+      
+      return total + (price * quantity);
     }, 0);
   };
 
   const getConvertedAmount = (amount) => {
-    return amount * exchangeRate;
+    const val = parseFloat(amount) || 0;
+    const rate = parseFloat(exchangeRate) || 1;
+    return val * rate;
   };
 
   const total = calculateTotal();
   const hasItems = items.length > 0;
+  
+  // Contadores seguros
   const productCount = items
     .filter((item) => item.type === T_Pro)
-    .reduce((count, item) => count + item.quantity, 0);
+    .reduce((count, item) => count + (parseFloat(item.quantity) || 0), 0);
+    
   const serviceCount = items
     .filter((item) => item.type === T_Ser)
-    .reduce((count, item) => count + item.quantity, 0);
+    .reduce((count, item) => count + (parseFloat(item.quantity) || 0), 0);
 
   if (!hasItems) {
     return (
@@ -55,7 +66,6 @@ export default function CartSummary({
 
   return (
     <div className="space-y-6">
-      {/* Resumen del carrito */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-workshop-red rounded-xl flex items-center justify-center">
@@ -92,62 +102,25 @@ export default function CartSummary({
         </div>
       </div>
 
-      {/* Total general */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <div className="space-y-4">
-          {/* Subtotal */}
+          {/* Subtotal en COP siempre visible */}
           <div className="flex justify-between items-center py-2">
-            <span className="text-sm font-medium text-gray-600">Subtotal:</span>
+            <span className="text-sm font-medium text-gray-600">Subtotal (COP):</span>
             <span className="font-bold text-gray-900">
-              {baseCurrency.symbol} {formatCurrency(total)}
+              COP {formatCurrency(total)}
             </span>
           </div>
 
-          {/* Línea divisoria */}
           <div className="border-t border-gray-200 pt-4">
-            {/* Total convertido */}
             <div className="flex justify-between items-center">
               <span className="text-lg font-black text-gray-900 uppercase tracking-tighter">
                 Total:
               </span>
+              {/* TOTAL CONVERTIDO Y SEPARADO */}
               <span className="font-black text-workshop-red text-2xl">
-                {baseCurrency.symbol}{" "}
-                {formatCurrency(getConvertedAmount(total))}
+                {baseCurrency.symbol} {formatCurrency(getConvertedAmount(total))}
               </span>
-            </div>
-
-            {/* Tasa de cambio si aplica */}
-            {baseCurrency.name !== "Pesos" && (
-              <div className="text-right text-sm text-gray-500 mt-2">
-                Tasa de cambio: 1 COP = {formatCurrency(exchangeRate)}{" "}
-                {baseCurrency.symbol}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Información adicional */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="text-sm">
-            <div className="font-bold text-gray-700 mb-2">
-              Detalles del pedido:
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-gray-600">
-              <div>
-                <span className="font-medium">Productos únicos:</span>{" "}
-                {items.filter((item) => item.type === T_Pro).length}
-              </div>
-              <div>
-                <span className="font-medium">Servicios únicos:</span>{" "}
-                {items.filter((item) => item.type === T_Ser).length}
-              </div>
-              <div>
-                <span className="font-medium">Total items:</span> {items.length}
-              </div>
-              <div>
-                <span className="font-medium">Unidades totales:</span>{" "}
-                {items.reduce((sum, item) => sum + item.quantity, 0)}
-              </div>
             </div>
           </div>
         </div>
