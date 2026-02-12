@@ -2,15 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../service/api_Authorization";
 import { Users, FileText, AlertTriangle, Package  } from "lucide-react";
-
-
-function formatMoney(value) {
-  const n = Number(value ?? 0);
-  return `$${n.toLocaleString("es-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+import { formatCOP } from "../../Misc/Definitions";
 
 function InvoiceStatusPill({ status }) {
   const normalized = String(status ?? "").toLowerCase();
@@ -149,7 +141,7 @@ export default function DashboardPage() {
                 Deudas totales
               </p>
               <h4 className="text-xl font-black text-workshop-red italic leading-none">
-                {formatMoney(summary.totalDebts)}
+                {formatCOP(summary.totalDebts)}
               </h4>
             </div>
           </div>
@@ -237,7 +229,7 @@ export default function DashboardPage() {
                       {`#FACT-${String(inv.id ?? "").padStart(4, "0")}`}
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-900 font-black">
-                      {formatMoney(inv.total_value)}
+                      {formatCOP(inv.total_value)}
                     </td>
                     <td className="px-5 py-4">
                       <InvoiceStatusPill status={inv.status} />
@@ -281,7 +273,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="font-black text-workshop-red italic">
-                    {formatMoney(d.pending_balance)}
+                    {formatCOP(d.pending_balance)}
                   </div>
                 </div>
               );
