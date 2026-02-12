@@ -69,7 +69,7 @@ class ClientSearchTest extends TestCase
         Client::factory()->create(['name' => 'Mario Diaz', 'phone' => '3001000002', 'cedula' => '50000002']);
         Client::factory()->create(['name' => 'Mariana Rojas', 'phone' => '3001000003', 'cedula' => '50000003']);
 
-        $response = $this->getJson('/api/clients?search=mari&limit=2');
+        $response = $this->getJson('/api/clients?search=mar&limit=2');
 
         $response->assertOk()
             ->assertJsonCount(2, 'data');
