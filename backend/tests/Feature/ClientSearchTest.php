@@ -40,9 +40,9 @@ class ClientSearchTest extends TestCase
             'cedula' => '11223344',
         ]);
 
-        $nameResponse = $this->postJson('/api/clients/search', ['search' => 'andres']);
-        $phoneResponse = $this->postJson('/api/clients/search', ['search' => '301555']);
-        $cedulaResponse = $this->postJson('/api/clients/search', ['search' => '9988']);
+        $nameResponse = $this->getJson('/api/clients/search?search=andres');
+        $phoneResponse = $this->getJson('/api/clients/search?search=301555');
+        $cedulaResponse = $this->getJson('/api/clients/search?search=9988');
 
         $nameResponse->assertOk();
         $phoneResponse->assertOk();
@@ -69,7 +69,7 @@ class ClientSearchTest extends TestCase
         Client::factory()->create(['name' => 'Mario Diaz', 'phone' => '3001000002', 'cedula' => '50000002']);
         Client::factory()->create(['name' => 'Mariana Rojas', 'phone' => '3001000003', 'cedula' => '50000003']);
 
-        $response = $this->postJson('/api/clients/search', ['search' => 'mar', 'limit' => 2]);
+        $response = $this->getJson('/api/clients/search?search=mar&limit=2');
 
         $response->assertOk()
             ->assertJsonCount(2, 'data');

@@ -24,7 +24,7 @@ export default function ClientesPage() {
     try {
       const trimmedQuery = query.trim();
       const request = trimmedQuery
-        ? api.post("/clients/search", { search: trimmedQuery, limit: 200 })
+        ? api.get("/clients/search", { params: { search: trimmedQuery, limit: 200 } })
         : api.get("/clients");
       const { data } = await request;
       if (requestId !== lastRequestId.current) return;
