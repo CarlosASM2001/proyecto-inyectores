@@ -28,6 +28,25 @@ class ClientController extends Controller
             ->take(5)->get());
     }
 
+    public function search(Request $request){
+        $search = trim((string) $request->input('search', $request->input('Seach', '')));
+
+        $limit= (int) $request->input('limit', 20);
+        $limit= $limit > 0 ? min($limit, 200) : 20;
+
+        $clientsQuery = Client::query()->orderBy('name');
+
+        if($search !== ''){
+            $clientsQuery->where(function($query) use ($search){
+                $query->where('name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('cedula', 'LIKE', '%' . $search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        return ClientResource::collection($clientsQuery->take($limit)->get());
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -75,4 +94,6 @@ class ClientController extends Controller
 
         return ClientResource::collection($clients);
     }
+
+    
 }
