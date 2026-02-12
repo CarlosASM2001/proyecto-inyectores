@@ -1,33 +1,68 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Package, Wrench,
-  FileText, LogOut, UserCircle, Calculator,
-  X, BanknoteArrowDown
+  CreditCard,
+  FileText,
+  HandCoins,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Users,
+  Wallet,
+  Wrench,
+  X,
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
   const navItems = [
     {
-      name: "Facturar",
+      label: "Nueva factura",
+      helper: "Cobro y registro rápido",
       path: "/invoices_Bill",
-      icon: <LayoutDashboard size={20} />,
+      icon: <CreditCard size={18} />,
     },
     {
-      name: "Dashboard",
+      label: "Panel general",
+      helper: "Indicadores del taller",
       path: "/dashboard",
       icon: <LayoutDashboard size={20} />,
     },
-    { name: "Clientes", path: "/clients", icon: <Users size={20} /> },
-    { name: "Inventario", path: "/products", icon: <Package size={20} /> },
-    { name: "Servicios", path: "/services", icon: <Wrench size={20} /> },
     {
-      name: "Historial Facturas",
+      label: "Clientes",
+      helper: "Contactos y vehículos",
+      path: "/clients",
+      icon: <Users size={20} />,
+    },
+    {
+      label: "Inventario",
+      helper: "Stock y repuestos",
+      path: "/products",
+      icon: <Package size={20} />,
+    },
+    {
+      label: "Servicios",
+      helper: "Órdenes y mano de obra",
+      path: "/services",
+      icon: <Wrench size={20} />,
+    },
+    {
+      label: "Historial facturas",
+      helper: "Consulta y seguimiento",
       path: "/invoices",
       icon: <FileText size={20} />,
     },
-    { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
-    { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
+    {
+      label: "Cierre de caja",
+      helper: "Arqueo y consolidado",
+      path: "/registerClose",
+      icon: <Wallet size={20} />,
+    },
+    {
+      label: "Deudas",
+      helper: "Control de pagos",
+      path: "/debts",
+      icon: <HandCoins size={20} />,
+    },
   ];
 
   return (
@@ -68,23 +103,52 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
 
         {/* Navigation - Con scroll interno si hay muchos items */}
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">
+          <p className="px-4 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+            Acciones rápidas
+          </p>
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               onClick={() => setIsOpen(false)}
+              title={item.label}
+              aria-label={item.label}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                `group flex items-center gap-3 px-3 py-3 rounded-xl border transition-all duration-200 ${
                   isActive
-                    ? "bg-workshop-red text-white font-black shadow-lg shadow-red-600/20"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white font-medium"
+                    ? "bg-workshop-red text-white border-workshop-red shadow-lg shadow-red-600/20"
+                    : "text-gray-300 border-transparent hover:bg-white/5 hover:border-white/10 hover:text-white"
                 }`
               }
             >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="text-sm uppercase tracking-wide">
-                {item.name}
-              </span>
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-white/5 text-gray-300 group-hover:bg-white/10 group-hover:text-white"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold leading-tight">
+                      {item.label}
+                    </span>
+                    <span
+                      className={`block text-xs leading-tight ${
+                        isActive
+                          ? "text-white/80"
+                          : "text-gray-500 group-hover:text-gray-300"
+                      }`}
+                    >
+                      {item.helper}
+                    </span>
+                  </span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
