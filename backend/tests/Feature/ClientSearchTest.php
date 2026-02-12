@@ -12,7 +12,7 @@ class ClientSearchTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_index_filters_clients_by_search_term_across_name_phone_and_cedula(): void
+    public function test_search_endpoint_filters_clients_by_search_term_across_name_phone_and_cedula(): void
     {
         Sanctum::actingAs(User::factory()->create());
 
@@ -40,9 +40,9 @@ class ClientSearchTest extends TestCase
             'cedula' => '11223344',
         ]);
 
-        $nameResponse = $this->getJson('/api/clients?search=andres');
-        $phoneResponse = $this->getJson('/api/clients?search=301555');
-        $cedulaResponse = $this->getJson('/api/clients?search=9988');
+        $nameResponse = $this->postJson('/api/clients/search', ['search' => 'andres']);
+        $phoneResponse = $this->postJson('/api/clients/search', ['search' => '301555']);
+        $cedulaResponse = $this->postJson('/api/clients/search', ['search' => '9988']);
 
         $nameResponse->assertOk();
         $phoneResponse->assertOk();
@@ -61,7 +61,7 @@ class ClientSearchTest extends TestCase
         $this->assertFalse($cedulaIds->contains($nonMatching->id));
     }
 
-    public function test_index_respects_limit_when_searching_clients(): void
+    public function test_search_endpoint_respects_limit_when_searching_clients(): void
     {
         Sanctum::actingAs(User::factory()->create());
 
@@ -69,13 +69,13 @@ class ClientSearchTest extends TestCase
         Client::factory()->create(['name' => 'Mario Diaz', 'phone' => '3001000002', 'cedula' => '50000002']);
         Client::factory()->create(['name' => 'Mariana Rojas', 'phone' => '3001000003', 'cedula' => '50000003']);
 
-        $response = $this->getJson('/api/clients?search=mar&limit=2');
+        $response = $this->postJson('/api/clients/search', ['search' => 'mar', 'limit' => 2]);
 
         $response->assertOk()
             ->assertJsonCount(2, 'data');
     }
 
-    public function test_index_like_accepts_legacy_seach_parameter_and_new_search_parameter(): void
+    public function test_index_like_keeps_legacy_seach_parameter_behavior(): void
     {
         Sanctum::actingAs(User::factory()->create());
 
@@ -86,15 +86,11 @@ class ClientSearchTest extends TestCase
         ]);
 
         $legacyResponse = $this->postJson('/api/clients/Like', ['Seach' => 'natalia']);
-        $newResponse = $this->postJson('/api/clients/Like', ['search' => '778899']);
 
         $legacyResponse->assertOk();
-        $newResponse->assertOk();
 
         $legacyIds = collect($legacyResponse->json('data'))->pluck('id');
-        $newIds = collect($newResponse->json('data'))->pluck('id');
 
         $this->assertTrue($legacyIds->contains($client->id));
-        $this->assertTrue($newIds->contains($client->id));
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Client;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -16,32 +15,33 @@ class ClientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $search = trim((string) $request->query('search', ''));
-        $limit = (int) $request->query('limit', 0);
-        $limit = $limit > 0 ? min($limit, 200) : 0;
-
-        $clientsQuery = Client::query()->orderBy('name');
-
-        $this->applySearch($clientsQuery, $search);
-
-        if ($limit > 0) {
-            $clientsQuery->limit($limit);
-        }
-
-        return ClientResource::collection($clientsQuery->get());
+        return ClientResource::collection(Client::all());
     }
 
     public function indexLike(Request $request)
     {
+        return ClientResource::collection(Client::where('name', 'LIKE', '%' . $request->Seach . '%')
+            ->orwhere('cedula', 'LIKE', '%' . $request->Seach . '%')
+            ->take(5)->get());
+    }
+
+    public function search(Request $request)
+    {
         $search = trim((string) $request->input('search', $request->input('Seach', '')));
-        $limit = (int) $request->input('limit', 5);
-        $limit = max(1, min($limit, 50));
+        $limit = (int) $request->input('limit', 20);
+        $limit = $limit > 0 ? min($limit, 200) : 20;
 
         $clientsQuery = Client::query()->orderBy('name');
 
-        $this->applySearch($clientsQuery, $search);
+        if ($search !== '') {
+            $clientsQuery->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('cedula', 'LIKE', '%' . $search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $search . '%');
+            });
+        }
 
         return ClientResource::collection($clientsQuery->limit($limit)->get());
     }
@@ -92,18 +92,5 @@ class ClientController extends Controller
         $clients = Client::has('debts')->withSum('debts as total_debt', 'pending_balance')->orderBy('total_debt', 'desc')->with('debts')->get();
 
         return ClientResource::collection($clients);
-    }
-
-    private function applySearch(Builder $query, string $search): void
-    {
-        if ($search === '') {
-            return;
-        }
-
-        $query->where(function (Builder $builder) use ($search) {
-            $builder->where('name', 'LIKE', '%' . $search . '%')
-                ->orWhere('cedula', 'LIKE', '%' . $search . '%')
-                ->orWhere('phone', 'LIKE', '%' . $search . '%');
-        });
     }
 }
