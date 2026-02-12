@@ -1,34 +1,83 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../../service/api_Authorization";
 import ClientModal from "./ClientModal";
-import { Trash2, Edit, UserPlus, Search, Phone, CreditCard } from "lucide-react";
+import { Trash2, Edit, UserPlus, Search, Phone, CreditCard, X } from "lucide-react";
 
 export default function ClientesPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [quickFilter, setQuickFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const didInitSearch = useRef(false);
+  const lastRequestId = useRef(0);
 
-  const fetchClients = async () => {
-    setLoading(true);
+  const fetchClients = async (query = "", showMainLoader = false) => {
+    const requestId = ++lastRequestId.current;
+
+    if (showMainLoader) setLoading(true);
+    else setSearching(true);
+
     try {
-      const { data } = await api.get("/clients");
+      const trimmedQuery = query.trim();
+      const request = trimmedQuery
+        ? api.post("/clients/search", { search: trimmedQuery, limit: 200 })
+        : api.get("/clients");
+      const { data } = await request;
+      if (requestId !== lastRequestId.current) return;
       setClients(data.data ?? data ?? []);
+      setError(null);
     } catch (err) {
+      if (requestId !== lastRequestId.current) return;
       setError(err.response?.status === 401 ? "Sesión expirada" : "Error al cargar clientes");
     } finally {
-      setLoading(false);
+      if (requestId !== lastRequestId.current) return;
+      if (showMainLoader) setLoading(false);
+      setSearching(false);
     }
   };
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => {
+    fetchClients("", true);
+  }, []);
+
+  useEffect(() => {
+    if (!didInitSearch.current) {
+      didInitSearch.current = true;
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      fetchClients(searchText, false);
+    }, 350);
+
+    return () => clearTimeout(timeout);
+  }, [searchText]);
+
+  const filteredClients = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    if (!query || quickFilter === "all") return clients;
+
+    return clients.filter((client) => {
+      const name = String(client.name ?? "").toLowerCase();
+      const cedula = String(client.cedula ?? "").toLowerCase();
+      const phone = String(client.phone ?? "").toLowerCase();
+
+      if (quickFilter === "name") return name.includes(query);
+      if (quickFilter === "cedula") return cedula.includes(query);
+      if (quickFilter === "phone") return phone.includes(query);
+      return true;
+    });
+  }, [clients, quickFilter, searchText]);
 
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de eliminar este cliente?")) {
       try {
         await api.delete(`/clients/${id}`);
-        setClients(clients.filter((c) => c.id !== id));
+        setClients((prevClients) => prevClients.filter((c) => c.id !== id));
       } catch (err) {
         alert("No se pudo eliminar: " + err.message);
       }
@@ -43,6 +92,12 @@ export default function ClientesPage() {
   if (loading) return (
     <div className="flex justify-center items-center h-64">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-workshop-red"></div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm font-bold text-red-600">
+      {error}
     </div>
   );
 
@@ -66,9 +121,83 @@ export default function ClientesPage() {
         </button>
       </div>
 
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Buscar por nombre, teléfono o cédula..."
+            className="w-full h-12 pl-11 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-workshop-red/20 focus:border-workshop-red font-medium text-sm"
+          />
+          {searchText && (
+            <button
+              type="button"
+              onClick={() => setSearchText("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:text-workshop-red hover:bg-red-50 transition-all"
+              aria-label="Limpiar búsqueda"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setQuickFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+              quickFilter === "all"
+                ? "bg-workshop-red text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            Todos
+          </button>
+          <button
+            type="button"
+            onClick={() => setQuickFilter("name")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+              quickFilter === "name"
+                ? "bg-workshop-red text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            Nombre
+          </button>
+          <button
+            type="button"
+            onClick={() => setQuickFilter("cedula")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+              quickFilter === "cedula"
+                ? "bg-workshop-red text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            Cédula
+          </button>
+          <button
+            type="button"
+            onClick={() => setQuickFilter("phone")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${
+              quickFilter === "phone"
+                ? "bg-workshop-red text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            Teléfono
+          </button>
+
+          <div className="ml-auto text-[11px] font-bold text-gray-500">
+            {searching ? "Buscando..." : `${filteredClients.length} resultado(s)`}
+          </div>
+        </div>
+      </div>
+
       {/* MOBILE LIST VIEW (Visible solo en < md) */}
       <div className="grid grid-cols-1 gap-4 lg:hidden">
-        {clients.map((client) => (
+        {filteredClients.map((client) => (
           <div key={client.id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <div className="flex justify-between items-start">
               <h3 className="font-black text-gray-900 uppercase tracking-tight text-lg">{client.name}</h3>
@@ -101,7 +230,7 @@ export default function ClientesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 italic">
-            {clients.map((client) => (
+            {filteredClients.map((client) => (
               <tr key={client.id} className="hover:bg-gray-50/50 transition-colors group">
                 <td className="px-6 py-4 font-bold text-gray-900 uppercase tracking-tighter">{client.name}</td>
                 <td className="px-6 py-4 text-gray-600 font-medium">{client.phone}</td>
@@ -119,12 +248,14 @@ export default function ClientesPage() {
       </div>
 
       {/* EMPTY STATE */}
-      {clients.length === 0 && (
+      {filteredClients.length === 0 && (
         <div className="bg-white p-12 rounded-2xl border border-gray-200 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
             <Search size={32} />
           </div>
-          <p className="text-gray-500 font-bold">No hay clientes registrados.</p>
+          <p className="text-gray-500 font-bold">
+            {searchText ? "No se encontraron coincidencias para tu búsqueda." : "No hay clientes registrados."}
+          </p>
         </div>
       )}
 
@@ -134,7 +265,7 @@ export default function ClientesPage() {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            fetchClients();
+            fetchClients(searchText, false);
           }}
         />
       )}
