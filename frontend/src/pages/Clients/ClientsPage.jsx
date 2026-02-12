@@ -34,9 +34,10 @@ export default function ClientesPage() {
       if (requestId !== lastRequestId.current) return;
       setError(err.response?.status === 401 ? "Sesión expirada" : "Error al cargar clientes");
     } finally {
-      if (requestId !== lastRequestId.current) return;
-      if (showMainLoader) setLoading(false);
-      setSearching(false);
+      if (requestId === lastRequestId.current) {
+        if (showMainLoader) setLoading(false);
+        setSearching(false);
+      }
     }
   };
 
