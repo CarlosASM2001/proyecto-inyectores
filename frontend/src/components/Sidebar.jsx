@@ -1,38 +1,90 @@
-import React from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Package, Wrench,
-  FileText, LogOut, UserCircle, Calculator,
-  X, BanknoteArrowDown
+  BanknoteArrowDown,
+  Calculator,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  ReceiptText,
+  Search,
+  Users,
+  Wrench,
+  X,
 } from "lucide-react";
 
-export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
-  const navItems = [
-    {
-      name: "Facturar",
-      path: "/invoices_Bill",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    { name: "Clientes", path: "/clients", icon: <Users size={20} /> },
-    { name: "Inventario", path: "/products", icon: <Package size={20} /> },
-    { name: "Servicios", path: "/services", icon: <Wrench size={20} /> },
-    {
-      name: "Historial Facturas",
-      path: "/invoices",
-      icon: <FileText size={20} />,
-    },
-    { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
-    { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
-  ];
+const navItems = [
+  {
+    name: "Facturar",
+    path: "/invoices_Bill",
+    icon: ReceiptText,
+    subtitle: "Emision rapida",
+  },
+  {
+    name: "Dashboard",
+    path: "/dashboard",
+    icon: LayoutDashboard,
+    subtitle: "Resumen general",
+  },
+  { name: "Clientes", path: "/clients", icon: Users, subtitle: "Agenda comercial" },
+  { name: "Inventario", path: "/products", icon: Package, subtitle: "Stock y repuestos" },
+  { name: "Servicios", path: "/services", icon: Wrench, subtitle: "Mano de obra" },
+  {
+    name: "Facturas",
+    path: "/invoices",
+    icon: FileText,
+    subtitle: "Historial y estado",
+  },
+  {
+    name: "Cierres",
+    path: "/registerClose",
+    icon: Calculator,
+    subtitle: "Control de caja",
+  },
+  {
+    name: "Deudas",
+    path: "/debts",
+    icon: BanknoteArrowDown,
+    subtitle: "Cobros pendientes",
+  },
+];
+
+export default function Sidebar({ user, onLogout, isOpen, setIsOpen }) {
+  const [quickSearch, setQuickSearch] = useState("");
+
+  const filteredItems = useMemo(() => {
+    const cleaned = quickSearch.trim().toLowerCase();
+    if (!cleaned) return navItems;
+    return navItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(cleaned) ||
+        item.subtitle.toLowerCase().includes(cleaned),
+    );
+  }, [quickSearch]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isOpen, setIsOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
 
   return (
     <>
-      {/* Overlay para móviles */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity"
@@ -42,65 +94,97 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
 
       <aside
         className={`
-        /* Móvil: Flota sobre el contenido */
-        fixed inset-y-0 left-0 z-50 w-64 bg-workshop-dark 
+        fixed inset-y-0 left-0 z-50 w-72 bg-workshop-dark 
         transform transition-transform duration-300 ease-in-out
-        
-        /* Escritorio: Fija y siempre visible */
         md:relative md:translate-x-0 md:flex md:h-full md:flex-none
-        
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
         flex flex-col border-r border-white/10 shadow-2xl
       `}
       >
-        {/* Logo Section */}
-        <div className="p-8 flex-none flex items-center justify-between">
-          <h1 className="text-2xl font-black tracking-tighter text-white italic">
-            INJECT<span className="text-workshop-red">PRO</span>
-          </h1>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="md:hidden p-2 text-white/50"
-          >
-            <X size={24} />
-          </button>
+        <div className="p-6 flex-none border-b border-white/10">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-black tracking-tight text-white italic">
+              INJECT<span className="text-workshop-red">PRO</span>
+            </h1>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="md:hidden p-2 text-white/50 hover:text-white transition-colors"
+              aria-label="Cerrar menu"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
+            Navegacion inteligente
+          </p>
+
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <Search size={15} className="text-white/40" />
+            <input
+              type="text"
+              value={quickSearch}
+              onChange={(event) => setQuickSearch(event.target.value)}
+              placeholder="Buscar modulo..."
+              className="w-full bg-transparent text-sm text-white placeholder:text-white/40 outline-none"
+            />
+          </div>
         </div>
 
-        {/* Navigation - Con scroll interno si hay muchos items */}
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-workshop-red text-white font-black shadow-lg shadow-red-600/20"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white font-medium"
-                }`
-              }
-            >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="text-sm uppercase tracking-wide">
-                {item.name}
-              </span>
-            </NavLink>
-          ))}
+        <nav className="flex-1 space-y-1 overflow-y-auto p-4 custom-scrollbar">
+          {filteredItems.length === 0 && (
+            <div className="rounded-xl border border-dashed border-white/20 bg-white/5 px-3 py-4 text-center">
+              <p className="text-xs font-bold text-white/50">Sin resultados para esa busqueda.</p>
+            </div>
+          )}
+
+          {filteredItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsOpen(false)}
+                className={({ isActive }) =>
+                  `group flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 ${
+                    isActive
+                      ? "bg-workshop-red text-white shadow-lg shadow-red-800/30"
+                      : "text-gray-300 hover:bg-white/8 hover:text-white"
+                  }`
+                }
+              >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 transition-colors group-hover:border-white/20">
+                  <Icon size={18} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-black uppercase tracking-wide">
+                    {item.name}
+                  </span>
+                  <span className="block truncate text-[11px] font-medium text-white/60">
+                    {item.subtitle}
+                  </span>
+                </span>
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Footer / User Profile */}
-        <div className="p-4 flex-none border-t border-white/5 bg-workshop-dark/50">
-          <div className="flex items-center gap-3 px-2 mb-4">
-            {/* ... (tu código de perfil de usuario) ... */}
+        <div className="border-t border-white/10 bg-black/20 p-4">
+          <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+              Usuario conectado
+            </p>
+            <p className="mt-1 truncate text-sm font-bold text-white">
+              {user?.name || user?.email || "Equipo taller"}
+            </p>
           </div>
 
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-workshop-red border border-workshop-red/20 rounded-xl hover:bg-workshop-red hover:text-white transition-all duration-300"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[11px] font-black text-workshop-red border border-workshop-red/30 rounded-xl hover:bg-workshop-red hover:text-white transition-all duration-300"
           >
             <LogOut size={16} />
-            <span>CERRAR SESIÓN</span>
+            <span>CERRAR SESION</span>
           </button>
         </div>
       </aside>

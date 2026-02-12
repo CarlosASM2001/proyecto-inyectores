@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../../service/api_Authorization";
 import InvoiceModal from "./InvoiceModal";
-import { Trash2, Edit, FileText, Plus, Clock, CheckCircle, Search, User, DollarSign } from "lucide-react";
+import { Trash2, Edit, FileText, Plus, Clock, CheckCircle, Search } from "lucide-react";
+
+function formatCurrency(value) {
+  return Number(value ?? 0).toLocaleString("es-CO");
+}
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -29,8 +33,30 @@ export default function InvoicesPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const totalInvoiced = invoices.reduce((sum, inv) => sum + Number(inv.total_value), 0);
-  const pendingInvoices = invoices.filter(inv => inv.status?.toLowerCase() !== 'pagada' && inv.status?.toLowerCase() !== 'paid');
+  const clientNameMap = useMemo(() => {
+    const map = new Map();
+    clients.forEach((client) => {
+      map.set(Number(client.id), client.name || client.full_name || "Cliente sin nombre");
+    });
+    return map;
+  }, [clients]);
+
+  const totalInvoiced = useMemo(
+    () => invoices.reduce((sum, inv) => sum + Number(inv.total_value || 0), 0),
+    [invoices],
+  );
+
+  const pendingInvoices = useMemo(
+    () =>
+      invoices.filter((inv) => {
+        const status = inv.status?.toLowerCase();
+        return status !== "pagada" && status !== "paid";
+      }),
+    [invoices],
+  );
+
+  const getClientName = (clientId) =>
+    clientNameMap.get(Number(clientId)) || "Cliente Desconocido";
 
   const openModal = (invoice = null) => {
     setSelectedInvoice(invoice);
@@ -55,16 +81,16 @@ export default function InvoicesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-slide-up">
       {/* SUMMARY CARDS - Scroll horizontal en móvil, grid en escritorio */}
-      <div className="grid grid-cols-1 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="min-w-[280px] snap-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5">
           <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-900 shrink-0">
             <FileText size={24} />
           </div>
           <div>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Facturado</p>
-            <h4 className="text-xl font-black text-gray-900 italic">${totalInvoiced.toLocaleString()}</h4>
+            <h4 className="text-xl font-black text-gray-900 italic">${formatCurrency(totalInvoiced)}</h4>
           </div>
         </div>
 
@@ -101,11 +127,17 @@ export default function InvoicesPage() {
         </button>
       </div>
 
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* MOBILE LIST (Cards) */}
       <div className="grid grid-cols-1 gap-4 lg:hidden">
         {invoices.map((inv) => {
           const isPaid = inv.status?.toLowerCase() === 'paid' || inv.status?.toLowerCase() === 'pagada';
-          const clientName = clients.find(c => c.id === inv.client_id)?.name || "Cliente Desconocido";
+          const clientName = getClientName(inv.client_id);
           
           return (
             <div key={inv.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -126,7 +158,7 @@ export default function InvoicesPage() {
                   <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-gray-400 uppercase">Total a Pagar</span>
                     <span className="text-xl font-black text-workshop-red tracking-tighter">
-                      ${Number(inv.total_value).toLocaleString()}
+                      ${formatCurrency(inv.total_value)}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -160,7 +192,7 @@ export default function InvoicesPage() {
                   <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-6 py-4 text-sm text-gray-500">{inv.date}</td>
                     <td className="px-6 py-4 text-sm text-gray-900 uppercase tracking-tighter">
-                      {clients.find(c => c.id === inv.client_id)?.name || "—"}
+                      {getClientName(inv.client_id)}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
@@ -170,7 +202,7 @@ export default function InvoicesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-black text-gray-900 italic text-lg">
-                      ${Number(inv.total_value).toLocaleString()}
+                      ${formatCurrency(inv.total_value)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
