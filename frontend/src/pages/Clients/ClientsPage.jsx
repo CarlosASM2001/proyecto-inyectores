@@ -1,34 +1,71 @@
-import { useEffect, useState } from "react";
+import { useEffect,useRef, useState } from "react";
 import api from "../../service/api_Authorization";
 import ClientModal from "./ClientModal";
-import { Trash2, Edit, UserPlus, Search, Phone, CreditCard } from "lucide-react";
+import { Trash2, Edit, UserPlus, Search, Phone, CreditCard, X } from "lucide-react";
 
 export default function ClientesPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const didInitSearch = useRef(false);
+  const lastRequestId = useRef(0);
 
-  const fetchClients = async () => {
-    setLoading(true);
+  const fetchClients = async (query = "", showMainLoader = false) => {
+    
+    const requestId = ++lastRequestId.current;
+
+    if (showMainLoader) setLoading(true);
+    else setSearching(true);
+
     try {
-      const { data } = await api.get("/clients");
+
+      const trimmedQuery = query.trim();
+      const request = trimmedQuery
+        ? api.get("/clients/search", { params: { search: trimmedQuery, limit: 200 } })
+        : api.get("/clients");
+
+      const { data } = await request;
+      if (requestId !== lastRequestId.current) return;
+
       setClients(data.data ?? data ?? []);
+      setError(null);
     } catch (err) {
+      if (requestId !== lastRequestId.current) return;
       setError(err.response?.status === 401 ? "Sesión expirada" : "Error al cargar clientes");
     } finally {
-      setLoading(false);
+      if (requestId === lastRequestId.current) {
+        if (showMainLoader) setLoading(false);
+        setSearching(false);
+      }
     }
   };
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { fetchClients("", true); }, []);
+
+  useEffect(() => {
+    if (!didInitSearch.current) {
+      didInitSearch.current = true;
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      fetchClients(searchText, false);
+    }, 350);
+
+    return () => clearTimeout(timeout);
+  }, [searchText]);
+
+  
 
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de eliminar este cliente?")) {
       try {
         await api.delete(`/clients/${id}`);
-        setClients(clients.filter((c) => c.id !== id));
+        setClients((prevClientes) => prevClientes.filter((c) => c.id !== id));
       } catch (err) {
         alert("No se pudo eliminar: " + err.message);
       }
@@ -43,6 +80,12 @@ export default function ClientesPage() {
   if (loading) return (
     <div className="flex justify-center items-center h-64">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-workshop-red"></div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm font-bold text-red-600">
+      {error}
     </div>
   );
 
@@ -64,6 +107,31 @@ export default function ClientesPage() {
           <UserPlus size={18} />
           Nuevo Cliente
         </button>
+      </div>
+
+      {/* SEARCH & FILTER SECTION */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Buscar por nombre, teléfono o cédula..."
+            className="w-full h-12 pl-11 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-workshop-red/20 focus:border-workshop-red font-medium text-sm"
+          />
+          {searchText && (
+            <button
+              type="button"
+              onClick={() => setSearchText("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-gray-400 hover:text-workshop-red hover:bg-red-50 transition-all"
+              aria-label="Limpiar búsqueda"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
       </div>
 
       {/* MOBILE LIST VIEW (Visible solo en < md) */}
@@ -124,7 +192,9 @@ export default function ClientesPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
             <Search size={32} />
           </div>
-          <p className="text-gray-500 font-bold">No hay clientes registrados.</p>
+          <p className="text-gray-500 font-bold">
+            {searchText ? "No se encontraron coincidencias para tu búsqueda." : "No hay clientes registrados."}
+          </p>
         </div>
       )}
 
@@ -134,7 +204,7 @@ export default function ClientesPage() {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            fetchClients();
+            fetchClients(searchText,false);
           }}
         />
       )}
