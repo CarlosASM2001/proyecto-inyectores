@@ -19,13 +19,12 @@ export default function PaymentSection({
     }).format(val);
   };
 
-  // Calcular total convertido con la tasa automática
-  // Si exchangeRate es 1 (COP), simplemente toma el total.
-  // Si exchangeRate es diferente (ej. 0.00025 para USD), multiplica.
   const totalInSelectedCurrency = total / (parseFloat(exchangeRate) || 1);
 
   // Calcular cambio (vuelto)
   const change = (parseFloat(paidAmount) || 0) - totalInSelectedCurrency;
+  const change_COP =
+    (parseFloat(paidAmount) || 0) * (parseFloat(exchangeRate) || 1) - total;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6 sticky top-6">
@@ -111,18 +110,27 @@ export default function PaymentSection({
       {/* Visualización del Cambio/Vuelto */}
       {(parseFloat(paidAmount) || 0) > 0 && (
         <div
-          className={`p-4 rounded-xl border flex justify-between items-center ${
-            change >= -0.01
-              ? "bg-green-50 border-green-100 text-green-700"
-              : "bg-red-50 border-red-100 text-red-700"
-          }`}
+          className={`p-4 rounded-xl border flex-1 justify-between items-center`}
         >
-          <span className="text-xs font-black uppercase tracking-widest">
-            {change >= -0.01 ? "Cambio / Vuelto" : "Faltante"}
-          </span>
-          <span className="text-lg font-black">
-            {currency.symbol} {formatCurrency(Math.abs(change))}
-          </span>
+          <div
+            className={`p-4 rounded-xl border flex justify-between items-center ${
+              change >= -0.01
+                ? "bg-green-50 border-green-100 text-green-700"
+                : "bg-red-50 border-red-100 text-red-700"
+            }`}
+          >
+            <span className="text-xs font-black uppercase tracking-widest">
+              {change >= -0.01 ? "Cambio / Vuelto" : "Faltante"}
+            </span>
+            <span className="text-lg font-black">
+              {currency.symbol} {formatCurrency(Math.abs(change))}
+            </span>
+          </div>
+          <div>
+            <p className="text-sm text-bold text-center">
+              (Pesos) {formatCurrency(Math.abs(change_COP))}
+            </p>
+          </div>
         </div>
       )}
 
