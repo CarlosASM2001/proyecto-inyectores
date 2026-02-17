@@ -1,4 +1,3 @@
-import React from "react";
 import { CreditCard, RefreshCw } from "lucide-react";
 import { CURRENCIES } from "../../hooks/useCurrency";
 
@@ -30,7 +29,6 @@ export default function PaymentSection({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6 sticky top-6">
-      
       <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
         <CreditCard className="text-workshop-red" size={24} />
         <h3 className="font-black text-gray-900 uppercase tracking-tight">
@@ -78,12 +76,12 @@ export default function PaymentSection({
             {formatCurrency(totalInSelectedCurrency)}
           </span>
         </div>
-        
+
         {/* Solo mostrar equivalencia si no son pesos */}
         {currency.name !== "Pesos" && (
-            <span className="text-xs font-medium text-gray-400">
-                (Equivalente a COP {formatCurrency(total)})
-            </span>
+          <span className="text-xs font-medium text-gray-400">
+            (Equivalente a COP {formatCurrency(total)})
+          </span>
         )}
       </div>
 
@@ -95,7 +93,9 @@ export default function PaymentSection({
         <div className="relative">
           {/* Símbolo dinámico dentro del input */}
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <span className="text-gray-500 font-bold text-lg">{currency.symbol}</span>
+            <span className="text-gray-500 font-bold text-lg">
+              {currency.symbol}
+            </span>
           </div>
           <input
             type="number"
@@ -110,17 +110,19 @@ export default function PaymentSection({
 
       {/* Visualización del Cambio/Vuelto */}
       {(parseFloat(paidAmount) || 0) > 0 && (
-        <div className={`p-4 rounded-xl border flex justify-between items-center ${
-            change >= -0.01 
-            ? "bg-green-50 border-green-100 text-green-700" 
-            : "bg-red-50 border-red-100 text-red-700"
-        }`}>
-            <span className="text-xs font-black uppercase tracking-widest">
-                {change >= -0.01 ? "Cambio / Vuelto" : "Faltante"}
-            </span>
-            <span className="text-lg font-black">
-                {currency.symbol} {formatCurrency(Math.abs(change))}
-            </span>
+        <div
+          className={`p-4 rounded-xl border flex justify-between items-center ${
+            change >= -0.01
+              ? "bg-green-50 border-green-100 text-green-700"
+              : "bg-red-50 border-red-100 text-red-700"
+          }`}
+        >
+          <span className="text-xs font-black uppercase tracking-widest">
+            {change >= -0.01 ? "Cambio / Vuelto" : "Faltante"}
+          </span>
+          <span className="text-lg font-black">
+            {currency.symbol} {formatCurrency(Math.abs(change))}
+          </span>
         </div>
       )}
 

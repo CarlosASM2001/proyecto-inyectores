@@ -16,6 +16,7 @@ export default function Billinvoices_Page() {
   const [clientSearchText, setClientSearchText] = useState("");
 
   // Estado de productos
+  const [ProductSearchText, setProductSearchText] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productQuantity, setProductQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -126,7 +127,8 @@ export default function Billinvoices_Page() {
         }
       } else {
         // Para productos, simplemente multiplicar el precio
-        itemToAdd.price = selectedProduct.price * productQuantity;
+        itemToAdd.price_ = selectedProduct.price;
+        itemToAdd.quantity_ = productQuantity;
       }
 
       // Agregar al carrito
@@ -135,6 +137,7 @@ export default function Billinvoices_Page() {
       // Limpiar selección
       setSelectedProduct(null);
       setProductQuantity(1);
+      setProductSearchText("");
 
       // Notificar éxito
       showNotification(
@@ -204,6 +207,7 @@ export default function Billinvoices_Page() {
         // Limpiar formulario
         setCartItems([]);
         setSelectedClient(null);
+        setProductSearchText("");
         setClientSearchText("");
         setAmountPaid(0);
 
@@ -325,6 +329,8 @@ export default function Billinvoices_Page() {
               onProductSelect={handleProductSelect}
               onQuantityChange={handleQuantityChange}
               onClear={handleProductClear}
+              searchText={ProductSearchText}
+              setSearchText={setProductSearchText}
             />
 
             {/* Botón agregar al carrito */}

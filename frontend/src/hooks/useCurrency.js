@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 
 export const CURRENCIES = {
-  PESOS: { 
-    name: "Pesos", 
-    symbol: "COP", 
-    key: "", 
-    rate: 1 
+  PESOS: {
+    name: "Pesos",
+    symbol: "COP",
+    key: "",
+    rate: 1,
   },
-  DOLLARS: { 
-    name: "Dolares", 
-    symbol: "$", 
-    key: "exchange_rate_usd", 
-    rate: 1 
+  DOLLARS: {
+    name: "Dolares",
+    symbol: "$",
+    key: "exchange_rate_usd",
+    rate: 1,
   },
   BOLIVARES: {
     name: "Bolivares",
@@ -43,7 +43,9 @@ export function useCurrency() {
     if (!isNaN(parsedRate) && parsedRate > 0) {
       setExchangeRate(1 / parsedRate);
     } else {
-      console.warn(`Tasa de cambio no encontrada para ${currentCurrency.name}, usando 1:1`);
+      console.warn(
+        `Tasa de cambio no encontrada para ${currentCurrency.name}, usando 1:1`,
+      );
       setExchangeRate(1);
     }
   }, [currentCurrency]);
@@ -69,9 +71,9 @@ export function useCurrency() {
 
   const changeCurrency = (currencyName) => {
     const selectedCurrency = Object.values(CURRENCIES).find(
-      (c) => c.name === currencyName
+      (c) => c.name === currencyName,
     );
-    
+
     if (selectedCurrency) {
       setCurrentCurrency(selectedCurrency);
       return selectedCurrency;

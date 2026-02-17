@@ -10,8 +10,10 @@ export default function ProductSearch({
   onQuantityChange,
   quantity,
   onClear,
+  searchText,
+  setSearchText,
 }) {
-  const [searchText, setSearchText] = useState("");
+  //const [searchText, setSearchText] = useState("");
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -207,7 +209,6 @@ export default function ProductSearch({
 
   return (
     <div className="space-y-4">
-      {/* Campo de búsqueda */}
       <div className="relative">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -223,7 +224,6 @@ export default function ProductSearch({
           />
         </div>
 
-        {/* Estado de carga */}
         {isLoading && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-gray-200 shadow-sm p-4 z-10">
             <div className="flex items-center gap-2 text-gray-500">
