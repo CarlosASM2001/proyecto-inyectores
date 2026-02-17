@@ -27,8 +27,8 @@ export default function CartItem({
   };
 
   // Cálculos seguros
-  const price = parseFloat(item.price) || 0;
-  const quantity = parseFloat(item.quantity) || 0;
+  const price = parseFloat(item.price_) || 0;
+  const quantity = parseFloat(item.quantity_) || 0;
   const totalItemPrice = price * quantity;
 
   const handleRemove = () => {
@@ -87,7 +87,11 @@ export default function CartItem({
                 onClick={toggleExpanded}
                 className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               >
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {isExpanded ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
               </button>
             )}
             <button
@@ -123,7 +127,10 @@ export default function CartItem({
                   </div>
                 </div>
                 <div className="font-black text-gray-900">
-                  ${(parseFloat(product.price) * parseFloat(product.quantity)).toFixed(2)}
+                  $
+                  {(
+                    parseFloat(product.price) * parseFloat(product.quantity)
+                  ).toFixed(2)}
                 </div>
               </div>
             ))}

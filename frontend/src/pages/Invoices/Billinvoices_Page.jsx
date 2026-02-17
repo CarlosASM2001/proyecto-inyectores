@@ -37,13 +37,7 @@ export default function Billinvoices_Page() {
   const [paymentMessage, setPaymentMessage] = useState("");
 
   // Hook de moneda
-  const {
-    currentCurrency,
-    exchangeRate,
-    formatCurrency,
-    changeCurrency,
-    convertCurrency,
-  } = useCurrency();
+  const { changeCurrency } = useCurrency();
 
   // Calcular total del carrito
   const calculateTotal = () => {
@@ -165,6 +159,10 @@ export default function Billinvoices_Page() {
 
   // Handler de pago
   const handleProcessPayment = async () => {
+    if (isProcessing) {
+      return;
+    }
+
     if (!selectedClient) {
       showNotification("error", "Debes seleccionar un cliente primero");
       return;
@@ -242,11 +240,8 @@ export default function Billinvoices_Page() {
   // Handlers de cambio de moneda
   const handlePaymentCurrencyChange = (currencyName) => {
     const selectedCurrency = changeCurrency(currencyName);
+    setPaymentExchangeRate(1 / selectedCurrency.rate);
     setPaidCurrency(selectedCurrency);
-  };
-
-  const handlePaymentExchangeRateChange = (rate) => {
-    setPaymentExchangeRate(rate);
   };
 
   const handleAmountPaidChange = (amount) => {
@@ -377,7 +372,6 @@ export default function Billinvoices_Page() {
             currency={paidCurrency}
             onCurrencyChange={handlePaymentCurrencyChange}
             exchangeRate={paymentExchangeRate}
-            onExchangeRateChange={handlePaymentExchangeRateChange}
             onProcessPayment={handleProcessPayment}
           />
 

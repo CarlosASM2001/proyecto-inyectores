@@ -26,6 +26,16 @@ export function useCurrency() {
   const [exchangeRate, setExchangeRate] = useState(1);
 
   useEffect(() => {
+    CURRENCIES.PESOS.rate = 1;
+    CURRENCIES.DOLLARS.rate = parseFloat(
+      localStorage.getItem(CURRENCIES.DOLLARS.key) || 1,
+    );
+    CURRENCIES.BOLIVARES.rate = parseFloat(
+      localStorage.getItem(CURRENCIES.BOLIVARES.key) || 1,
+    );
+  }, []);
+
+  useEffect(() => {
     // 1. Si la moneda es PESOS (no tiene key), la tasa es 1:1
     if (!currentCurrency.key) {
       setExchangeRate(1);
