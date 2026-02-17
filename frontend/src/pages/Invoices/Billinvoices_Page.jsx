@@ -184,12 +184,16 @@ export default function Billinvoices_Page() {
     setIsProcessing(true);
     try {
       const totalInCOP = calculateTotal();
-      const amountPaidInCOP = amountPaid / paymentExchangeRate;
+      let amountPaidInCOP = amountPaid * paymentExchangeRate;
+
+      if (amountPaidInCOP > totalInCOP) {
+        amountPaidInCOP = totalInCOP / paymentExchangeRate;
+      }
 
       const paymentInfo = {
         amount: amountPaidInCOP,
         currency: paidCurrency.name,
-        reference: paymentExchangeRate.toFixed(4),
+        reference: paymentExchangeRate,
       };
 
       const result = await Facturar(
@@ -240,7 +244,7 @@ export default function Billinvoices_Page() {
   // Handlers de cambio de moneda
   const handlePaymentCurrencyChange = (currencyName) => {
     const selectedCurrency = changeCurrency(currencyName);
-    setPaymentExchangeRate(1 / selectedCurrency.rate);
+    setPaymentExchangeRate(selectedCurrency.rate);
     setPaidCurrency(selectedCurrency);
   };
 

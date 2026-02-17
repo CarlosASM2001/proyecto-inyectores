@@ -22,7 +22,7 @@ export default function PaymentSection({
   // Calcular total convertido con la tasa automática
   // Si exchangeRate es 1 (COP), simplemente toma el total.
   // Si exchangeRate es diferente (ej. 0.00025 para USD), multiplica.
-  const totalInSelectedCurrency = total * (parseFloat(exchangeRate) || 1);
+  const totalInSelectedCurrency = total / (parseFloat(exchangeRate) || 1);
 
   // Calcular cambio (vuelto)
   const change = (parseFloat(paidAmount) || 0) - totalInSelectedCurrency;

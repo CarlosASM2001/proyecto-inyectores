@@ -27,25 +27,25 @@ export default function CartSummary({
       } else {
         price = parseFloat(item.price) || 0;
       }
-      
-      return total + (price * quantity);
+
+      return total + price * quantity;
     }, 0);
   };
 
   const getConvertedAmount = (amount) => {
     const val = parseFloat(amount) || 0;
     const rate = parseFloat(exchangeRate) || 1;
-    return val * rate;
+    return val / rate;
   };
 
   const total = calculateTotal();
   const hasItems = items.length > 0;
-  
+
   // Contadores seguros
   const productCount = items
     .filter((item) => item.type === T_Pro)
     .reduce((count, item) => count + (parseFloat(item.quantity) || 0), 0);
-    
+
   const serviceCount = items
     .filter((item) => item.type === T_Ser)
     .reduce((count, item) => count + (parseFloat(item.quantity) || 0), 0);
@@ -106,7 +106,9 @@ export default function CartSummary({
         <div className="space-y-4">
           {/* Subtotal en COP siempre visible */}
           <div className="flex justify-between items-center py-2">
-            <span className="text-sm font-medium text-gray-600">Subtotal (COP):</span>
+            <span className="text-sm font-medium text-gray-600">
+              Subtotal (COP):
+            </span>
             <span className="font-bold text-gray-900">
               COP {formatCurrency(total)}
             </span>
@@ -119,7 +121,8 @@ export default function CartSummary({
               </span>
               {/* TOTAL CONVERTIDO Y SEPARADO */}
               <span className="font-black text-workshop-red text-2xl">
-                {baseCurrency.symbol} {formatCurrency(getConvertedAmount(total))}
+                {baseCurrency.symbol}{" "}
+                {formatCurrency(getConvertedAmount(total))}
               </span>
             </div>
           </div>

@@ -11,7 +11,7 @@ export default function CartItem({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const formatCurrency = (amount) => {
-    const val = parseFloat(amount) || 0; // Validación de seguridad
+    const val = parseFloat(amount) || 0;
     return new Intl.NumberFormat("es-VE", {
       style: "decimal",
       minimumFractionDigits: 2,
@@ -23,7 +23,7 @@ export default function CartItem({
   const getConvertedAmount = (amount) => {
     const val = parseFloat(amount) || 0;
     const rate = parseFloat(exchangeRate) || 1;
-    return val * rate;
+    return val / rate;
   };
 
   // Cálculos seguros
