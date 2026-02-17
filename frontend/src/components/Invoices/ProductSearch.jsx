@@ -190,6 +190,9 @@ export default function ProductSearch({
             <input
               type="number"
               value={quantity}
+              onFocus={(e) => {
+                e.currentTarget.select();
+              }}
               onChange={(e) => handleQuantityChange(e.target.value)}
               className="w-16 text-center font-black text-lg text-gray-900 border-none outline-none"
               min="1"

@@ -98,6 +98,9 @@ export default function PaymentSection({
           </div>
           <input
             type="number"
+            onFocus={(e) => {
+              e.currentTarget.select();
+            }}
             value={paidAmount}
             onChange={(e) => onPaidAmountChange(e.target.value)}
             // Padding izquierdo grande para acomodar simbolos largos como 'COP'
