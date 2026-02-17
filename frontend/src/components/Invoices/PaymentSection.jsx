@@ -127,7 +127,7 @@ export default function PaymentSection({
             </span>
           </div>
           <div>
-            <p className="text-sm text-bold text-center">
+            <p className="text-sm text-bold text-center mt-2">
               (Pesos) {formatCurrency(Math.abs(change_COP))}
             </p>
           </div>
