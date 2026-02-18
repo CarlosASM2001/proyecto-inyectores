@@ -34,6 +34,10 @@ export default function ProductSearch({
     return val / rate;
   };
 
+  const getConvertedAmountFormat = (amount) => {
+    return formatCurrency(getConvertedAmount(amount));
+  };
+
   // Búsqueda con debounce
   useEffect(() => {
     if (!searchText || searchText.length < 2) {
@@ -141,12 +145,15 @@ export default function ProductSearch({
               </div>
               {selectedProduct.type === T_Ser ? (
                 <div className="text-lg font-black text-gray-900 mt-2">
-                  Precio base: ${selectedProduct.base_price}
+                  Precio base:
+                  {getConvertedAmountFormat(selectedProduct.base_price)}{" "}
+                  {Currency.symbol}
                 </div>
               ) : (
                 <div className="flex items-center gap-4 mt-2">
                   <div className="text-lg font-black text-gray-900">
-                    Precio: ${selectedProduct.price}
+                    Precio: {getConvertedAmountFormat(selectedProduct.price)}{" "}
+                    {Currency.symbol}
                   </div>
                   <div className="text-sm text-gray-500">
                     Stock: {selectedProduct.actual_stock}
@@ -193,8 +200,8 @@ export default function ProductSearch({
                     <span>
                       {formatCurrency(
                         getConvertedAmount(selectedProduct.subtotal),
-                      )}
-                      {" "} {Currency.symbol}
+                      )}{" "}
+                      {Currency.symbol}
                     </span>
                   </div>
                 </div>
