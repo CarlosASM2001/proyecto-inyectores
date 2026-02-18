@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../../service/api_Authorization";
 import useCurrency from "../../hooks/useCurrency";
-import { T_Pro, T_Ser } from "../../Misc/Definitions";
+import { Spli_Delimitador, T_Pro, T_Ser } from "../../Misc/Definitions";
 import Facturar from "../../service/Invoices/Facturar";
 import ClientSearch from "../../components/Invoices/ClientSearch";
 import ProductSearch from "../../components/Invoices/ProductSearch";
@@ -9,6 +9,7 @@ import CartSummary from "../../components/Invoices/CartSummary";
 import PaymentSection from "../../components/Invoices/PaymentSection";
 import { FileText, UserCircle, Package, CheckCircle } from "lucide-react";
 import { CURRENCIES } from "../../hooks/useCurrency";
+import Comprobar from "../../service/Invoices/Comprobar_ItemFact";
 
 export default function Billinvoices_Page() {
   // Estado del cliente
@@ -80,6 +81,17 @@ export default function Billinvoices_Page() {
 
   const handleAddToCart = async () => {
     if (!selectedProduct) return;
+
+    const Result = Comprobar({ ...selectedProduct, quantity: productQuantity });
+
+    if (Result.status != "OK") {
+      setNotification({
+        show: true,
+        type: Result.status,
+        message: Result.message,
+      });
+      return;
+    }
 
     setIsAdding(true);
     try {
@@ -273,7 +285,12 @@ export default function Billinvoices_Page() {
                 : "bg-blue-50 border-blue-400 text-blue-800"
           }`}
         >
-          {notification.message}
+          <ul>
+            {console.log(notification.message.split("|_"))}
+            {notification.message.split(Spli_Delimitador).map((mess) => (
+              <li>{mess}</li>
+            ))}
+          </ul>
         </div>
       )}
 

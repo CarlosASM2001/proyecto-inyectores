@@ -165,6 +165,20 @@ export default function ProductSearch({
                         {product.quantity} × ${product.price} = $
                         {(product.price * product.quantity).toFixed(2)}
                       </span>
+                      <span className="text-gray-700">
+                        {" "}
+                        | Stock:{" "}
+                        {product.actual_stock <
+                        (product.quantity_ ?? product.quantity) ? (
+                          <span className="text-red-500">
+                            {product.actual_stock}
+                          </span>
+                        ) : (
+                          <span className="text-green-900">
+                            {product.actual_stock}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   ))}
                   <div className="flex justify-between font-black text-workshop-red border-t border-gray-200 pt-2">
