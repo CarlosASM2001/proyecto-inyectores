@@ -346,6 +346,7 @@ export default function Billinvoices_Page() {
               onClear={handleProductClear}
               searchText={ProductSearchText}
               setSearchText={setProductSearchText}
+              Currency={paidCurrency}
             />
 
             {/* Botón agregar al carrito */}
