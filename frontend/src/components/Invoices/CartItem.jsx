@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { T_Ser } from "../../Misc/Definitions";
 
 export default function CartItem({
   item,
@@ -27,8 +28,11 @@ export default function CartItem({
   };
 
   // Cálculos seguros
-  const price = parseFloat(item.price_) || 0;
-  const quantity = parseFloat(item.quantity_) || 0;
+  const price =
+    item.type === T_Ser
+      ? parseFloat(item.subtotal)
+      : parseFloat(item.price) || 0;
+  const quantity = parseFloat(item.quantity_ ?? item.quantity) || 0;
   const totalItemPrice = price * quantity;
 
   const handleRemove = () => {
@@ -59,9 +63,27 @@ export default function CartItem({
                 {item.type === "Service" ? "Servicio" : "Producto"}
               </span>
               <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold">
-                × {quantity}
+                × {item.quantity}
               </span>
             </div>
+            {item.type === "Service" &&
+            item.products &&
+            item.products.length > 0 ? (
+              <>
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-100 text-green-700`}
+                  >
+                    Producto
+                  </span>
+                  <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold">
+                    × {item.products.length}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
 
             <div className="font-black text-gray-900 text-lg mb-2">
               {item.name}
@@ -123,13 +145,18 @@ export default function CartItem({
                 <div>
                   <div className="font-bold text-gray-900">{product.name}</div>
                   <div className="text-sm text-gray-500">
-                    {product.quantity} × ${product.price}
+                    {product.quantity} × $
+                    {formatCurrency(
+                      getConvertedAmount(product.price_ ?? product.price),
+                    )}{" "}
+                    {baseCurrency.symbo}
                   </div>
                 </div>
                 <div className="font-black text-gray-900">
                   $
                   {(
-                    parseFloat(product.price) * parseFloat(product.quantity)
+                    getConvertedAmount(product.price_ ?? product.price) *
+                    parseFloat(product.quantity_ ?? product.quantity)
                   ).toFixed(2)}
                 </div>
               </div>

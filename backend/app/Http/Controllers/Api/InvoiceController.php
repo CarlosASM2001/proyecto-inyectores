@@ -144,7 +144,7 @@ class InvoiceController extends Controller
                 }
 
                 // 6. Handle debt if payment is less than total
-                if (($totalInCOP - $paymentInCOP) > 0.1) {
+                if (($totalInCOP - $paymentInCOP) > 0.9) {
                     // Convert all amounts to COP for debt calculation
                     $debtAmount = $totalInCOP - $paymentInCOP;
 
