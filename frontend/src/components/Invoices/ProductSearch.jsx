@@ -12,11 +12,27 @@ export default function ProductSearch({
   onClear,
   searchText,
   setSearchText,
+  Currency,
 }) {
   //const [searchText, setSearchText] = useState("");
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const formatCurrency = (amount) => {
+    const val = parseFloat(amount) || 0;
+    return new Intl.NumberFormat("es-VE", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
+  };
+
+  const getConvertedAmount = (amount) => {
+    const val = parseFloat(amount) || 0;
+    const rate = parseFloat(Currency.rate) || 1;
+    return val / rate;
+  };
 
   // Búsqueda con debounce
   useEffect(() => {
@@ -162,14 +178,24 @@ export default function ProductSearch({
                     >
                       <span className="text-gray-700">{product.name}</span>
                       <span className="font-bold text-gray-900">
-                        {product.quantity} × ${product.price} = $
-                        {(product.price * product.quantity).toFixed(2)}
+                        {product.quantity} ×{" "}
+                        {formatCurrency(getConvertedAmount(product.price))}{" "}
+                        {Currency.symbol} ={" "}
+                        {formatCurrency(
+                          getConvertedAmount(product.price) * product.quantity,
+                        )}{" "}
+                        {Currency.symbol}
                       </span>
                     </div>
                   ))}
                   <div className="flex justify-between font-black text-workshop-red border-t border-gray-200 pt-2">
                     <span>Subtotal:</span>
-                    <span>${selectedProduct.subtotal.toFixed(2)}</span>
+                    <span>
+                      {formatCurrency(
+                        getConvertedAmount(selectedProduct.subtotal),
+                      )}
+                      {" "} {Currency.symbol}
+                    </span>
                   </div>
                 </div>
               </div>
