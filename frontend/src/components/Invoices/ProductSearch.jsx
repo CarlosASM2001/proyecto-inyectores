@@ -160,24 +160,26 @@ export default function ProductSearch({
                       key={`${product.id}-${index}`}
                       className="flex justify-between text-sm py-1"
                     >
-                      <span className="text-gray-700">{product.name}</span>
+                      <div>
+                        <span className="text-gray-700">{product.name}</span>
+                        <span className="text-gray-700 text-xs font-bold">
+                          {" "}
+                          | Stock:{" "}
+                          {product.actual_stock <
+                          (product.quantity_ ?? product.quantity) ? (
+                            <span className="text-red-500">
+                              {product.actual_stock}
+                            </span>
+                          ) : (
+                            <span className="text-green-800">
+                              {product.actual_stock}
+                            </span>
+                          )}
+                        </span>
+                      </div>
                       <span className="font-bold text-gray-900">
                         {product.quantity} × ${product.price} = $
                         {(product.price * product.quantity).toFixed(2)}
-                      </span>
-                      <span className="text-gray-700">
-                        {" "}
-                        | Stock:{" "}
-                        {product.actual_stock <
-                        (product.quantity_ ?? product.quantity) ? (
-                          <span className="text-red-500">
-                            {product.actual_stock}
-                          </span>
-                        ) : (
-                          <span className="text-green-900">
-                            {product.actual_stock}
-                          </span>
-                        )}
                       </span>
                     </div>
                   ))}

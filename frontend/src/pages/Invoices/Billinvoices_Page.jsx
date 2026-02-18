@@ -286,7 +286,6 @@ export default function Billinvoices_Page() {
           }`}
         >
           <ul>
-            {console.log(notification.message.split("|_"))}
             {notification.message.split(Spli_Delimitador).map((mess) => (
               <li>{mess}</li>
             ))}
