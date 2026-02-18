@@ -36,6 +36,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'summary']);
 
     //Rutas de CRUD
+    Route::get('/clients/search', [ClientController::class, 'search']);
+
     Route::apiResource('clients', ClientController::class);
     Route::post("/clients/Like", [ClientController::class, 'indexLike']);
 
