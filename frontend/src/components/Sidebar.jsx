@@ -1,22 +1,31 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Package, Wrench,
-  FileText, LogOut, UserCircle, Calculator,
-  X, BanknoteArrowDown, Settings
+  CreditCard,
+  FileText,
+  HandCoins,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Users,
+  Wallet,
+  Wrench,
+  X,
+  BanknoteArrowDown, 
+  Settings
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
   const navItems = [
-    { name: "Facturar", path: "/invoices_Bill", icon: <LayoutDashboard size={20} />},
-    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
-    { name: "Clientes", path: "/clients", icon: <Users size={20} /> },
-    { name: "Inventario", path: "/products", icon: <Package size={20} /> },
-    { name: "Servicios", path: "/services", icon: <Wrench size={20} /> },
-    { name: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />, },
-    { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
-    { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
-    { name: "Configuraciones", path: "/settings", icon: <Settings size={20} />}
+    { label: "Facturar", path: "/invoices_Bill", icon: <CreditCard size={18} />, },
+    { label: "Panel General", path: "/dashboard", icon: <LayoutDashboard size={20} />,},
+    { label: "Clientes", path: "/clients", icon: <Users size={20} /> },
+    { label: "Inventario", path: "/products", icon: <Package size={20} /> },
+    { label: "Servicios", path: "/services", icon: <Wrench size={20} /> },
+    { label: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />,},
+    { label: "Cierre de Caja", path: "/registerClose", icon: <Wallet size={20} /> },
+    { label: "Deudas", path: "/debts", icon: <HandCoins size={20} /> },
+    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />}
   ];
 
   return (
@@ -56,34 +65,48 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
         </div>
 
         {/* Navigation - Con scroll interno si hay muchos items */}
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto pt-2">
+        <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto pt-2">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               onClick={() => setIsOpen(false)}
+              title={item.label}
+              aria-label={item.label}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                `group flex items-center gap-3 px-3 py-3 rounded-xl border transition-all duration-200 ${
                   isActive
-                    ? "bg-workshop-red text-white font-black shadow-lg shadow-red-600/20"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white font-medium"
+                    ? "bg-workshop-red text-white border-workshop-red shadow-lg shadow-red-600/20"
+                    : "text-gray-300 border-transparent hover:bg-white/5 hover:border-white/10 hover:text-white"
                 }`
               }
             >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="text-sm uppercase tracking-wide">
-                {item.name}
-              </span>
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-white/5 text-gray-300 group-hover:bg-white/10 group-hover:text-white"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold leading-tight">
+                      {item.label}
+                    </span>
+                    
+                  </span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
         {/* Footer / User Profile */}
         <div className="p-4 flex-none border-t border-white/5 bg-workshop-dark/50">
-          <div className="flex items-center gap-3 px-2 mb-4">
-            {/* ... (tu código de perfil de usuario) ... */}
-          </div>
-
           <button
             onClick={onLogout}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-black text-workshop-red border border-workshop-red/20 rounded-xl hover:bg-workshop-red hover:text-white transition-all duration-300"

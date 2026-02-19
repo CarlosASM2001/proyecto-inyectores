@@ -127,7 +127,7 @@ class InvoiceController extends Controller
                 }
 
                 // 5. Process payment with currency conversion
-                $paymentInCOP = $request->pagos['amount'] / $request->pagos['reference'];
+                $paymentInCOP = $request->pagos['amount'] * $request->pagos['reference'];
                 $totalInCOP = $request->totalPagar;
                 $payment = null;
                 // Create payment record
