@@ -26,15 +26,15 @@ class Invoice extends Model
     public function Products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'invoice_product')
-                    ->withPivot('unitary_price', 'subtotal', 'quantity')
-                    ->withTimestamps();
+            ->withPivot('unitary_price', 'subtotal', 'quantity', 'service')
+            ->withTimestamps();
     }
 
     public function Services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'invoice_service')
-                    ->withPivot('unitary_price', 'subtotal', 'quantity')
-                    ->withTimestamps();
+            ->withPivot('unitary_price', 'subtotal', 'quantity')
+            ->withTimestamps();
     }
 
     public function Payment(): HasMany
@@ -57,7 +57,7 @@ class Invoice extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function RegisterClose() : BelongsTo
+    public function RegisterClose(): BelongsTo
     {
         return $this->belongsTo(RegisterClose::class);
     }

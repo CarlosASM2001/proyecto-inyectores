@@ -71,7 +71,6 @@ class InvoiceController extends Controller
                         continue;
                     }
 
-                    // Attach product to invoice
                     $invoice->Products()->attach($product['id'], [
                         'quantity' => $product['quantity'],
                         'unitary_price' => $product['unitary_price'],
@@ -112,7 +111,8 @@ class InvoiceController extends Controller
                             $invoice->Products()->attach($product['id'], [
                                 'quantity' => $product['quantity'],
                                 'unitary_price' => $product['unitary_price'],
-                                'subtotal' => $product['quantity'] * $product['unitary_price']
+                                'subtotal' => $product['quantity'] * $product['unitary_price'],
+                                'service' => $service['id']
                             ]);
 
                             // Update stock for service products
