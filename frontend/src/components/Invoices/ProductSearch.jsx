@@ -12,11 +12,31 @@ export default function ProductSearch({
   onClear,
   searchText,
   setSearchText,
+  Currency,
 }) {
   //const [searchText, setSearchText] = useState("");
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const formatCurrency = (amount) => {
+    const val = parseFloat(amount) || 0;
+    return new Intl.NumberFormat("es-VE", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
+  };
+
+  const getConvertedAmount = (amount) => {
+    const val = parseFloat(amount) || 0;
+    const rate = parseFloat(Currency.rate) || 1;
+    return val / rate;
+  };
+
+  const getConvertedAmountFormat = (amount) => {
+    return formatCurrency(getConvertedAmount(amount));
+  };
 
   // Búsqueda con debounce
   useEffect(() => {
@@ -57,14 +77,20 @@ export default function ProductSearch({
       // Cargar productos del servicio
       try {
         const response = await api.get(`/services/${item.id}/products`);
-        product.products = response.data.data || [];
+        let products = response.data.data || [];
+        let subtotal_ = parseFloat(product.base_price);
 
         // Calcular subtotal del servicio
-        let subtotal = parseFloat(product.base_price);
-        subtotal += product.products.reduce((sum, p) => {
-          return sum + p.price * (p.quantity || 1);
-        }, 0);
-        product.subtotal = subtotal;
+        let Prods = products.map((p) => {
+          subtotal_ += p.quantity * p.price;
+          return {
+            ...p,
+            quantity_: p.quantity,
+          };
+        });
+
+        product.products = Prods;
+        product.subtotal = subtotal_;
       } catch (err) {
         console.error("Error cargando productos del servicio:", err);
         product.products = [];
@@ -125,12 +151,19 @@ export default function ProductSearch({
               </div>
               {selectedProduct.type === T_Ser ? (
                 <div className="text-lg font-black text-gray-900 mt-2">
-                  Precio base: ${selectedProduct.base_price}
+                  Precio base:
+                  {getConvertedAmountFormat(
+                    (selectedProduct.base_price_ ??
+                      selectedProduct.base_price) * quantity,
+                  )}{" "}
+                  {Currency.symbol}
                 </div>
               ) : (
                 <div className="flex items-center gap-4 mt-2">
                   <div className="text-lg font-black text-gray-900">
-                    Precio: ${selectedProduct.price}
+                    Precio:{" "}
+                    {getConvertedAmountFormat(selectedProduct.price * quantity)}{" "}
+                    {Currency.symbol}
                   </div>
                   <div className="text-sm text-gray-500">
                     Stock: {selectedProduct.actual_stock}
@@ -160,16 +193,44 @@ export default function ProductSearch({
                       key={`${product.id}-${index}`}
                       className="flex justify-between text-sm py-1"
                     >
-                      <span className="text-gray-700">{product.name}</span>
+                      <div>
+                        <span className="text-gray-700">{product.name}</span>
+                        <span className="text-gray-700 text-xs font-bold">
+                          {" "}
+                          | Stock:{" "}
+                          {product.actual_stock <
+                          (product.quantity_ ?? product.quantity) * quantity ? (
+                            <span className="text-red-500">
+                              {product.actual_stock}
+                            </span>
+                          ) : (
+                            <span className="text-green-800">
+                              {product.actual_stock}
+                            </span>
+                          )}
+                        </span>
+                      </div>
                       <span className="font-bold text-gray-900">
-                        {product.quantity} × ${product.price} = $
-                        {(product.price * product.quantity).toFixed(2)}
+                        {(product.quantity_ ?? product.quantity) * quantity} ×{" "}
+                        {formatCurrency(getConvertedAmount(product.price))}{" "}
+                        {Currency.symbol} ={" "}
+                        {formatCurrency(
+                          getConvertedAmount(product.price) *
+                            (product.quantity_ ?? product.quantity) *
+                            quantity,
+                        )}{" "}
+                        {Currency.symbol}
                       </span>
                     </div>
                   ))}
                   <div className="flex justify-between font-black text-workshop-red border-t border-gray-200 pt-2">
                     <span>Subtotal:</span>
-                    <span>${selectedProduct.subtotal.toFixed(2)}</span>
+                    <span>
+                      {formatCurrency(
+                        getConvertedAmount(selectedProduct.subtotal * quantity),
+                      )}{" "}
+                      {Currency.symbol}
+                    </span>
                   </div>
                 </div>
               </div>

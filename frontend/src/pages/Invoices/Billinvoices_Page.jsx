@@ -1,7 +1,6 @@
 import { useState } from "react";
-import api from "../../service/api_Authorization";
 import useCurrency from "../../hooks/useCurrency";
-import { T_Pro, T_Ser } from "../../Misc/Definitions";
+import { Spli_Delimitador, T_Pro, T_Ser } from "../../Misc/Definitions";
 import Facturar from "../../service/Invoices/Facturar";
 import ClientSearch from "../../components/Invoices/ClientSearch";
 import ProductSearch from "../../components/Invoices/ProductSearch";
@@ -9,6 +8,7 @@ import CartSummary from "../../components/Invoices/CartSummary";
 import PaymentSection from "../../components/Invoices/PaymentSection";
 import { FileText, UserCircle, Package, CheckCircle } from "lucide-react";
 import { CURRENCIES } from "../../hooks/useCurrency";
+import Comprobar from "../../service/Invoices/Comprobar_ItemFact";
 
 export default function Billinvoices_Page() {
   // Estado del cliente
@@ -80,39 +80,43 @@ export default function Billinvoices_Page() {
 
   const handleAddToCart = async () => {
     if (!selectedProduct) return;
+    if (isAdding) return;
 
     setIsAdding(true);
+    const Result = Comprobar({ ...selectedProduct, quantity: productQuantity });
+
+    if (Result.status != "OK") {
+      setNotification({
+        show: true,
+        type: Result.status,
+        message: Result.message,
+      });
+      return;
+    }
+
     try {
       let itemToAdd = { ...selectedProduct, quantity: productQuantity };
 
       // Si es un servicio, cargar sus productos asociados
       if (selectedProduct.type === T_Ser) {
         try {
-          const response = await api.get(
-            `/services/${selectedProduct.id}/products`,
-          );
-          const products = response.data.data || [];
-          let subtotal = parseFloat(selectedProduct.base_price);
-          subtotal += products.reduce((sum, p) => {
-            return sum + p.price * (p.quantity || 1);
-          }, 0);
+          let subtotal =
+            parseFloat(selectedProduct.base_price) * productQuantity;
+
+          let pros =
+            selectedProduct.products.map((p) => {
+              subtotal += p.price * p.quantity * productQuantity;
+              return { ...p, quantity: p.quantity * productQuantity };
+            }) || [];
 
           itemToAdd = {
             ...itemToAdd,
-            products: products,
+            products: pros,
             subtotal: subtotal,
-            base_price_: selectedProduct.base_price * productQuantity,
+            base_price_:
+              parseFloat(selectedProduct.base_price) * productQuantity,
             price: selectedProduct.base_price * productQuantity,
           };
-
-          // Actualizar productos del servicio con cantidad
-          if (products.length > 0) {
-            itemToAdd.products = products.map((p) => ({
-              ...p,
-              quantity_: p.quantity * productQuantity,
-              price_: p.price * productQuantity,
-            }));
-          }
         } catch (error) {
           console.error("Error obteniendo productos del servicio:", error);
           itemToAdd.subtotal = selectedProduct.base_price * productQuantity;
@@ -273,7 +277,11 @@ export default function Billinvoices_Page() {
                 : "bg-blue-50 border-blue-400 text-blue-800"
           }`}
         >
-          {notification.message}
+          <ul>
+            {notification.message.split(Spli_Delimitador).map((mess) => (
+              <li>{mess}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -330,6 +338,7 @@ export default function Billinvoices_Page() {
               onClear={handleProductClear}
               searchText={ProductSearchText}
               setSearchText={setProductSearchText}
+              Currency={paidCurrency}
             />
 
             {/* Botón agregar al carrito */}
