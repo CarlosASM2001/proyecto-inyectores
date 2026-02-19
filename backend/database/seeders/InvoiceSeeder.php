@@ -86,7 +86,6 @@ class InvoiceSeeder extends Seeder
             ]);
         }
 
-        // Recalcular total de la factura sumando ambas relaciones
         $totalProducts = $invoice->products->sum('pivot.subtotal');
         $totalServices = $invoice->services->sum('pivot.subtotal');
 

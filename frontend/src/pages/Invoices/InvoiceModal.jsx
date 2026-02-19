@@ -3,7 +3,13 @@ import api from "../../service/api_Authorization";
 import { X, Save, FileText } from "lucide-react";
 
 export default function InvoiceModal({ onClose, onSuccess, invoiceData = null }) {
-  const [formData, setFormData] = useState([]);
+  const [formData, setFormData] = useState({
+      date: '',
+      total_value: '',     
+      client_id: '',       
+      type: 'Service',     
+      status: 'Paid',       
+  });
 
   const [clients, setClients] = useState([]);
   const [saving, setSaving] = useState(false);
