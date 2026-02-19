@@ -311,7 +311,7 @@ export default function ProductSearch({
                     <button
                       key={service.id}
                       onClick={() => handleSelect(service, T_Ser)}
-                      className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors rounded-lg mb-1 border-l-4 border-blue-500 border-l-4"
+                      className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors rounded-lg mb-1 border-l-4 border-blue-500"
                     >
                       <div className="font-bold text-gray-900">
                         {service.name}
@@ -343,7 +343,7 @@ export default function ProductSearch({
                     <button
                       key={product.id}
                       onClick={() => handleSelect(product, T_Pro)}
-                      className="w-full text-left px-3 py-2 hover:bg-green-50 transition-colors rounded-lg mb-1 border-l-4 border-green-500 border-l-4"
+                      className="w-full text-left px-3 py-2 hover:bg-green-50 transition-colors rounded-lg mb-1 border-l-4 border-green-500"
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex-1">

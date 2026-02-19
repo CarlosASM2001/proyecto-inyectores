@@ -46,7 +46,7 @@ export default function PaymentSection({
             <select
               value={currency.name}
               onChange={(e) => onCurrencyChange(e.target.value)}
-              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-workshop-red focus:border-workshop-red block w-full p-3 font-bold outline-none cursor-pointer"
+              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-workshop-red focus:border-workshop-red block p-3 font-bold outline-none cursor-pointer"
             >
               {Object.values(CURRENCIES).map((curr) => (
                 <option key={curr.name} value={curr.name}>
