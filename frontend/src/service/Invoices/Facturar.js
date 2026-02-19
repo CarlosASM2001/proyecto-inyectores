@@ -20,7 +20,7 @@ async function Facturar(Items_General, Cliente, TotalPagar, Pagos) {
 
   try {
     const resp = await api.post("invoices/to_invoice", obj);
-    ///console.log(resp);
+
     return {
       status: "OK",
       msg: resp.data.message,
@@ -29,12 +29,12 @@ async function Facturar(Items_General, Cliente, TotalPagar, Pagos) {
   } catch (error) {
     console.log({
       status: "Error, Status: " + error.status,
-      msg: error.response.data.message,
+      msg: error.response.data.message + ": " + error.response.data.error,
       data: error.response.data,
     });
     return {
       status: "Error",
-      msg: error.response.data.message,
+      msg: error.response.data.message + ": " + error.response.data.error,
       data: error.response.data,
     };
   }
