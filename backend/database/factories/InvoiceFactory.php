@@ -20,7 +20,7 @@ class InvoiceFactory extends Factory
     public function definition(): array
     {
         $types = ['Venta', 'Servicio', 'Mixto'];
-        $statuses = ['Pendiente', 'Pagada', 'Cancelada', 'En Proceso'];
+        $statuses = ['Pendiente', 'Pagada'];
 
         return [
             'date' => $this->faker->dateTimeBetween('-1 year', 'now'),
