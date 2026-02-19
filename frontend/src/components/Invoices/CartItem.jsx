@@ -145,15 +145,14 @@ export default function CartItem({
                 <div>
                   <div className="font-bold text-gray-900">{product.name}</div>
                   <div className="text-sm text-gray-500">
-                    {product.quantity} × $
+                    {product.quantity} × {}
                     {formatCurrency(
                       getConvertedAmount(product.price_ ?? product.price),
                     )}{" "}
-                    {baseCurrency.symbo}
+                    {baseCurrency.symbol}
                   </div>
                 </div>
                 <div className="font-black text-gray-900">
-                  $
                   {(
                     getConvertedAmount(product.price_ ?? product.price) *
                     parseFloat(product.quantity_ ?? product.quantity)
