@@ -3,31 +3,20 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard, Users, Package, Wrench,
   FileText, LogOut, UserCircle, Calculator,
-  X, BanknoteArrowDown
+  X, BanknoteArrowDown, Settings
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
   const navItems = [
-    {
-      name: "Facturar",
-      path: "/invoices_Bill",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
+    { name: "Facturar", path: "/invoices_Bill", icon: <LayoutDashboard size={20} />},
+    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={20} /> },
     { name: "Clientes", path: "/clients", icon: <Users size={20} /> },
     { name: "Inventario", path: "/products", icon: <Package size={20} /> },
     { name: "Servicios", path: "/services", icon: <Wrench size={20} /> },
-    {
-      name: "Historial Facturas",
-      path: "/invoices",
-      icon: <FileText size={20} />,
-    },
+    { name: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />, },
     { name: "Cierres", path: "/registerClose", icon: <Calculator size={20} /> },
     { name: "Deudas", path: "/debts", icon: <BanknoteArrowDown size={20} /> },
+    { name: "Configuraciones", path: "/settings", icon: <Settings size={20} />}
   ];
 
   return (
