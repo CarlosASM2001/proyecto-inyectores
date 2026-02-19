@@ -9,6 +9,7 @@ export default function PaymentSection({
   onCurrencyChange,
   exchangeRate,
   onProcessPayment,
+  isError,
 }) {
   const formatCurrency = (amount) => {
     const val = parseFloat(amount) || 0;
@@ -142,7 +143,7 @@ export default function PaymentSection({
         className="w-full bg-workshop-dark text-white font-black py-4 rounded-xl hover:bg-workshop-red transition-all shadow-lg hover:shadow-red-900/20 active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2"
       >
         <CreditCard size={18} />
-        Confirmar Factura
+        {isError ? <>Error</> : <>Confirmar Factura</>}
       </button>
     </div>
   );
