@@ -126,6 +126,9 @@ class InvoiceController extends Controller
                     }
                 }
 
+                throw new \Exception("Vale Monda el servicio");
+
+
                 // 5. Process payment with currency conversion
                 $paymentInCOP = $request->pagos['amount'] * $request->pagos['reference'];
                 $totalInCOP = $request->totalPagar;

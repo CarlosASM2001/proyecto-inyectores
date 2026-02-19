@@ -36,7 +36,10 @@ export default function Billinvoices_Page() {
   const [amountPaid, setAmountPaid] = useState(0);
   const [paidCurrency, setPaidCurrency] = useState(CURRENCIES.PESOS);
   const [paymentExchangeRate, setPaymentExchangeRate] = useState(1);
-  const [paymentMessage, setPaymentMessage] = useState("");
+  const [paymentMessage, setPaymentMessage] = useState({
+    status: "",
+    message: "",
+  });
 
   // Hook de moneda
   const { changeCurrency } = useCurrency();
@@ -219,7 +222,7 @@ export default function Billinvoices_Page() {
         paymentInfo,
       );
 
-      if (result.msg.includes("correctamente")) {
+      if (result.status === "OK") {
         showNotification("success", "¡Factura generada exitosamente!");
 
         // Limpiar formulario
@@ -231,11 +234,11 @@ export default function Billinvoices_Page() {
 
         // Retrasar notificación para mejor UX
         setTimeout(() => {
-          setPaymentMessage(result.msg);
+          setPaymentMessage({ status: result.status, message: result.msg });
         }, 1000);
 
         setTimeout(() => {
-          setPaymentMessage("");
+          setPaymentMessage({ status: "", message: "" });
         }, 5000);
       } else {
         showNotification("error", result.msg);
@@ -415,17 +418,17 @@ export default function Billinvoices_Page() {
           />
 
           {/* Mensaje de facturación */}
-          {paymentMessage && (
+          {paymentMessage.status != "" && (
             <div
               className={`rounded-xl p-4 ${
-                paymentMessage.includes("correctamente")
+                paymentMessage.status === "OK"
                   ? "bg-green-50 border border-green-200 text-green-800"
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 shrink-0" />
-                <span className="font-medium">{paymentMessage}</span>
+                <span className="font-medium">{paymentMessage.message}</span>
               </div>
             </div>
           )}

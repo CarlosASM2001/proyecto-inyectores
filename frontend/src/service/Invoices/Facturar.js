@@ -18,20 +18,24 @@ async function Facturar(Items_General, Cliente, TotalPagar, Pagos) {
     user_id: user_id,
   };
 
-  console.log(obj);
-
-  const resp = await api.post("invoices/to_invoice", obj);
-
-  if (resp.status == 201) {
+  try {
+    const resp = await api.post("invoices/to_invoice", obj);
+    ///console.log(resp);
     return {
-      msg: "Factura generada correctamente",
+      status: "OK",
+      msg: resp.data.message,
       data: resp.data,
     };
-  } else {
-    console.log("Error al facturar, status:", resp.status, "data:", resp.data);
+  } catch (error) {
+    console.log({
+      status: "Error, Status: " + error.status,
+      msg: error.response.data.message,
+      data: error.response.data,
+    });
     return {
-      msg: "Error al generar la factura",
-      data: resp.data,
+      status: "Error",
+      msg: error.response.data.message,
+      data: error.response.data,
     };
   }
 }
