@@ -132,18 +132,5 @@ class InvoiceSeeder extends Seeder
         // 3. Calculate total invoice value
         $totalInvoiceValue = $totalProductSubtotal + $totalServiceSubtotal;
         $invoice->update(['total_value' => $totalInvoiceValue]);
-        $services = Service::inRandomOrder()->limit(rand(1, 2))->get();
-        foreach ($services as $service) {
-            $invoice->services()->attach($service->id, [
-                'unitary_price' => $service->base_price,
-                'quantity' => 1,
-                'subtotal' => $service->base_price,
-            ]);
-        }
-
-        $totalProducts = $invoice->products->sum('pivot.subtotal');
-        $totalServices = $invoice->services->sum('pivot.subtotal');
-
-        $invoice->update(['total_value' => $totalProducts + $totalServices]);
     }
 }
