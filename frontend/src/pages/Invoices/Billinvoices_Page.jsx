@@ -197,7 +197,7 @@ export default function Billinvoices_Page() {
       return;
     }
 
-    if (amountPaid <= 0 || isNaN(amountPaid)) {
+    if (amountPaid < 0 || isNaN(amountPaid)) {
       showNotification("error", "Debes ingresar un monto de pago válido");
       showErrorPay();
       return;
