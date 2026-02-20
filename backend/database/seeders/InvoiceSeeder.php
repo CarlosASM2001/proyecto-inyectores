@@ -35,27 +35,27 @@ class InvoiceSeeder extends Seeder
                 'user_id' => $admin->id,
             ]);
 
-        $invoices = Invoice::factory(4)->create([
-            'date' => $fecha->format('Y-m-d'),
-            'register_close_id' => $cierre->id,
-            'user_id' => $admin->id,
-            'client_id' => Client::all()->random()->id,
-        ]);
+            $invoices = Invoice::factory(4)->create([
+                'date' => $fecha->format('Y-m-d'),
+                'register_close_id' => $cierre->id,
+                'user_id' => $admin->id,
+                'client_id' => Client::all()->random()->id,
+            ]);
 
-        $invoices->each(function ($invoice) use ($fecha, $cierre) {
-            $this->attachItems($invoice);
+            $invoices->each(function ($invoice) use ($fecha, $cierre) {
+                $this->attachItems($invoice);
 
-            if (rand(1, 100) > 50) {
-                $invoice->update(['status' => 'Pendiente']);
-                Debt::factory()->create(['invoice_id' => $invoice->id]);
-            } else {
-                $invoice->update(['status' => 'Pagada']);
-                Payment::factory()->create([
-                    'invoice_id' => $invoice->id,
-                    'register_close_id' => $cierre->id
-                ]);
-            }
-        });
+                if (rand(1, 100) > 50) {
+                    $invoice->update(['status' => 'Pendiente']);
+                    Debt::factory()->create(['invoice_id' => $invoice->id]);
+                } else {
+                    $invoice->update(['status' => 'Pagada']);
+                    Payment::factory()->create([
+                        'invoice_id' => $invoice->id,
+                        'register_close_id' => $cierre->id
+                    ]);
+                }
+            });
 
             $cierre->update([
                 'final_amount' => Invoice::where('register_close_id', $cierre->id)->sum('total_value'),

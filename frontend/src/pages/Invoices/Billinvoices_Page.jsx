@@ -88,7 +88,10 @@ export default function Billinvoices_Page() {
     if (isAdding) return;
 
     setIsAdding(true);
-    const Result = Comprobar({ ...selectedProduct, quantity: productQuantity });
+    const Result = Comprobar(
+      { ...selectedProduct, quantity: productQuantity },
+      cartItems,
+    );
 
     if (Result.status != "OK") {
       setNotification({

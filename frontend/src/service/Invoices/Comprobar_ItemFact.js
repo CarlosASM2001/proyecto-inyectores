@@ -1,10 +1,10 @@
 import { Spli_Delimitador, T_Pro, T_Ser } from "../../Misc/Definitions";
 
-function Comprobar(item) {
+function Comprobar(item, all_items) {
   if (item.type == T_Ser) {
-    return Compro_Service(item);
+    return Compro_Service(item, all_items);
   } else if (item.type == T_Pro) {
-    return Compro_Producto(item);
+    return Compro_Producto(item, all_items);
   } else {
     return {
       status: "Error",
@@ -13,7 +13,14 @@ function Comprobar(item) {
   }
 }
 
-function Compro_Service(Serv) {
+function Compro_Service(Serv, all_items) {
+  if (all_items.findIndex((s) => s.id == Serv.id && s.type == T_Ser) != -1) {
+    return {
+      status: "Error",
+      message: "El servicio ya se ha agregado",
+    };
+  }
+
   const cantidadServicio = parseInt(Serv.quantity_ ?? Serv.quantity) || 1;
   const productosFaltantes = [];
 
@@ -53,7 +60,14 @@ function Compro_Service(Serv) {
   return { status: "OK", message: "OK" };
 }
 
-function Compro_Producto(Pro) {
+function Compro_Producto(Pro, all_items = []) {
+  if (all_items.findIndex((s) => s.id == Pro.id && s.type == T_Pro) != -1) {
+    return {
+      status: "Error",
+      message: "El Producto ya se ha agregado",
+    };
+  }
+
   const cantidadDeseada = parseInt(Pro.quantity_ ?? Pro.quantity) || 0;
   const stockDisponible = parseInt(Pro.actual_stock) || 0;
 
