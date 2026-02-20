@@ -72,7 +72,6 @@ class InvoiceController extends Controller
                         continue;
                     }
 
-                    // Attach product to invoice
                     $invoice->Products()->attach($product['id'], [
                         'quantity' => $product['quantity'],
                         'unitary_price' => $product['unitary_price'],
@@ -113,7 +112,8 @@ class InvoiceController extends Controller
                             $invoice->Products()->attach($product['id'], [
                                 'quantity' => $product['quantity'],
                                 'unitary_price' => $product['unitary_price'],
-                                'subtotal' => $product['quantity'] * $product['unitary_price']
+                                'subtotal' => $product['quantity'] * $product['unitary_price'],
+                                'service' => $service['id']
                             ]);
 
                             // Update stock for service products
@@ -128,7 +128,7 @@ class InvoiceController extends Controller
                 }
 
                 // 5. Process payment with currency conversion
-                $paymentInCOP = $request->pagos['amount'] / $request->pagos['reference'];
+                $paymentInCOP = $request->pagos['amount'] * $request->pagos['reference'];
                 $totalInCOP = $request->totalPagar;
                 $payment = null;
                 // Create payment record

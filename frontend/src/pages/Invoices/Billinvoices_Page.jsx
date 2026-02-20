@@ -20,6 +20,8 @@ export default function Billinvoices_Page() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productQuantity, setProductQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [isAddingError, setIsAddingError] = useState(false);
+  const [isPayError, setisPayError] = useState(false);
 
   // Estado del carrito
   const [cartItems, setCartItems] = useState([]);
@@ -34,7 +36,10 @@ export default function Billinvoices_Page() {
   const [amountPaid, setAmountPaid] = useState(0);
   const [paidCurrency, setPaidCurrency] = useState(CURRENCIES.PESOS);
   const [paymentExchangeRate, setPaymentExchangeRate] = useState(1);
-  const [paymentMessage, setPaymentMessage] = useState("");
+  const [paymentMessage, setPaymentMessage] = useState({
+    status: "",
+    message: "",
+  });
 
   // Hook de moneda
   const { changeCurrency } = useCurrency();
@@ -83,7 +88,10 @@ export default function Billinvoices_Page() {
     if (isAdding) return;
 
     setIsAdding(true);
-    const Result = Comprobar({ ...selectedProduct, quantity: productQuantity });
+    const Result = Comprobar(
+      { ...selectedProduct, quantity: productQuantity },
+      cartItems,
+    );
 
     if (Result.status != "OK") {
       setNotification({
@@ -91,6 +99,13 @@ export default function Billinvoices_Page() {
         type: Result.status,
         message: Result.message,
       });
+      setIsAdding(false);
+      setIsAddingError(true);
+
+      setTimeout(() => {
+        setIsAddingError(false);
+      }, 3000);
+
       return;
     }
 
@@ -169,6 +184,7 @@ export default function Billinvoices_Page() {
 
     if (!selectedClient) {
       showNotification("error", "Debes seleccionar un cliente primero");
+      showErrorPay();
       return;
     }
 
@@ -177,11 +193,13 @@ export default function Billinvoices_Page() {
         "error",
         "Debes agregar al menos un producto o servicio",
       );
+      showErrorPay();
       return;
     }
 
     if (amountPaid <= 0 || isNaN(amountPaid)) {
       showNotification("error", "Debes ingresar un monto de pago válido");
+      showErrorPay();
       return;
     }
 
@@ -207,7 +225,7 @@ export default function Billinvoices_Page() {
         paymentInfo,
       );
 
-      if (result.msg.includes("correctamente")) {
+      if (result.status === "OK") {
         showNotification("success", "¡Factura generada exitosamente!");
 
         // Limpiar formulario
@@ -219,11 +237,11 @@ export default function Billinvoices_Page() {
 
         // Retrasar notificación para mejor UX
         setTimeout(() => {
-          setPaymentMessage(result.msg);
+          setPaymentMessage({ status: result.status, message: result.msg });
         }, 1000);
 
         setTimeout(() => {
-          setPaymentMessage("");
+          setPaymentMessage({ status: "", message: "" });
         }, 5000);
       } else {
         showNotification("error", result.msg);
@@ -243,6 +261,13 @@ export default function Billinvoices_Page() {
       () => setNotification({ show: false, type: "", message: "" }),
       3000,
     );
+  };
+
+  const showErrorPay = () => {
+    setisPayError(true);
+    setTimeout(() => {
+      setisPayError(false);
+    }, 3000);
   };
 
   // Handlers de cambio de moneda
@@ -346,18 +371,24 @@ export default function Billinvoices_Page() {
               <div className="mt-6">
                 <button
                   onClick={handleAddToCart}
-                  disabled={isAdding || !selectedProduct}
+                  disabled={isAdding || isAddingError || !selectedProduct}
                   className={`w-full py-4 px-6 rounded-xl font-black uppercase text-sm tracking-wider transition-all ${
-                    isAdding || !selectedProduct
+                    isAdding || isAddingError || !selectedProduct
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-workshop-dark hover:bg-workshop-red active:bg-red-700 shadow-lg hover:shadow-red-500/20 text-white"
                   }`}
                 >
-                  {isAdding ? (
+                  {isAdding && !isAddingError ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Agregando...
                     </div>
+                  ) : isAddingError ? (
+                    <>
+                      <div className="flex items-center justify-center gap-2 text-red-500">
+                        Error
+                      </div>
+                    </>
                   ) : (
                     "AGREGAR AL CARRITO"
                   )}
@@ -386,20 +417,21 @@ export default function Billinvoices_Page() {
             onCurrencyChange={handlePaymentCurrencyChange}
             exchangeRate={paymentExchangeRate}
             onProcessPayment={handleProcessPayment}
+            isError={isPayError}
           />
 
           {/* Mensaje de facturación */}
-          {paymentMessage && (
+          {paymentMessage.status != "" && (
             <div
               className={`rounded-xl p-4 ${
-                paymentMessage.includes("correctamente")
+                paymentMessage.status === "OK"
                   ? "bg-green-50 border border-green-200 text-green-800"
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium">{paymentMessage}</span>
+                <CheckCircle className="h-5 w-5 shrink-0" />
+                <span className="font-medium">{paymentMessage.message}</span>
               </div>
             </div>
           )}

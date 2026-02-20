@@ -9,6 +9,7 @@ export default function PaymentSection({
   onCurrencyChange,
   exchangeRate,
   onProcessPayment,
+  isError,
 }) {
   const formatCurrency = (amount) => {
     const val = parseFloat(amount) || 0;
@@ -45,7 +46,7 @@ export default function PaymentSection({
             <select
               value={currency.name}
               onChange={(e) => onCurrencyChange(e.target.value)}
-              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-workshop-red focus:border-workshop-red block w-full p-3 font-bold outline-none cursor-pointer"
+              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-workshop-red focus:border-workshop-red block p-3 font-bold outline-none cursor-pointer"
             >
               {Object.values(CURRENCIES).map((curr) => (
                 <option key={curr.name} value={curr.name}>
@@ -142,7 +143,7 @@ export default function PaymentSection({
         className="w-full bg-workshop-dark text-white font-black py-4 rounded-xl hover:bg-workshop-red transition-all shadow-lg hover:shadow-red-900/20 active:scale-[0.98] uppercase text-sm tracking-widest flex items-center justify-center gap-2"
       >
         <CreditCard size={18} />
-        Confirmar Factura
+        {isError ? <>Error</> : <>Confirmar Factura</>}
       </button>
     </div>
   );
