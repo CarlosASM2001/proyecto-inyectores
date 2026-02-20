@@ -35,28 +35,27 @@ class InvoiceSeeder extends Seeder
                 'user_id' => $admin->id,
             ]);
 
-            Invoice::factory(4)->create([
-                'date' => $fecha->format('Y-m-d'),
-                'register_close_id' => $cierre->id,
-                'user_id' => $admin->id,
-                'client_id' => Client::all()->random()->id,
-            ])->each(function (Invoice $invoice) use ($fecha, $cierre) {
+        $invoices = Invoice::factory(4)->create([
+            'date' => $fecha->format('Y-m-d'),
+            'register_close_id' => $cierre->id,
+            'user_id' => $admin->id,
+            'client_id' => Client::all()->random()->id,
+        ]);
 
-                $this->attachItems($invoice);
+        $invoices->each(function ($invoice) use ($fecha, $cierre) {
+            $this->attachItems($invoice);
 
-                $suerte = rand(1, 100);
-
-                if ($suerte > 75) {
-                    $invoice->update(['status' => 'Pendiente']);
-                    Debt::factory()->create(['invoice_id' => $invoice->id]);
-                } elseif ($suerte > 45) {
-                    Payment::factory()->create();
-                    $invoice->update(['status' => 'En Proceso']);
-                } else {
-                    Payment::factory()->create();
-                    $invoice->update(['status' => 'Pagada']);
-                }
-            });
+            if (rand(1, 100) > 50) {
+                $invoice->update(['status' => 'Pendiente']);
+                Debt::factory()->create(['invoice_id' => $invoice->id]);
+            } else {
+                $invoice->update(['status' => 'Pagada']);
+                Payment::factory()->create([
+                    'invoice_id' => $invoice->id,
+                    'register_close_id' => $cierre->id
+                ]);
+            }
+        });
 
             $cierre->update([
                 'final_amount' => Invoice::where('register_close_id', $cierre->id)->sum('total_value'),
@@ -133,5 +132,18 @@ class InvoiceSeeder extends Seeder
         // 3. Calculate total invoice value
         $totalInvoiceValue = $totalProductSubtotal + $totalServiceSubtotal;
         $invoice->update(['total_value' => $totalInvoiceValue]);
+        $services = Service::inRandomOrder()->limit(rand(1, 2))->get();
+        foreach ($services as $service) {
+            $invoice->services()->attach($service->id, [
+                'unitary_price' => $service->base_price,
+                'quantity' => 1,
+                'subtotal' => $service->base_price,
+            ]);
+        }
+
+        $totalProducts = $invoice->products->sum('pivot.subtotal');
+        $totalServices = $invoice->services->sum('pivot.subtotal');
+
+        $invoice->update(['total_value' => $totalProducts + $totalServices]);
     }
 }

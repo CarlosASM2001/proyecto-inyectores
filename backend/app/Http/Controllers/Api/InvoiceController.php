@@ -34,6 +34,7 @@ class InvoiceController extends Controller
     public function store(StoreInvoiceRequest $request)
     {
         $invoice = Invoice::create($request->validated());
+        
         return new InvoiceResource($invoice);
     }
 
