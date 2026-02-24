@@ -149,18 +149,12 @@ class InvoiceController extends Controller
                     // Convert all amounts to COP for debt calculation
                     $debtAmount = $totalInCOP - $paymentInCOP;
 
-                    // Create debt record if the client doesn't have
-                    $clientDebt = Debt::where('client_id', $request->id_client)->first();
-                    if($clientDebt){
-                        $clientDebt->pending_balance+=$debtAmount;
-                        $clientDebt->save();
-                    } else {
-                        Debt::create([
-                            'pending_balance' => $debtAmount,
-                            'client_id' => $request->id_client,
-                            'invoice_id' => $invoice->id
-                        ]);
-                    }
+                    // Create debt record
+                    Debt::create([
+                        'pending_balance' => $debtAmount,
+                        'client_id' => $request->id_client,
+                        'invoice_id' => $invoice->id
+                    ]);
 
                     // Update invoice status to 'debt'
                     $invoice->update(['status' => 'debt']);
