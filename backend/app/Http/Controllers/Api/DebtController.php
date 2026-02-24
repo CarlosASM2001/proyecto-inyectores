@@ -67,4 +67,15 @@ class DebtController extends Controller
             'total_debt' => $total_amount
         ]);
     }
+
+    public function debtClient($clientId)
+    {
+        $debt = Debt::where("client_id", $clientId)->first();
+
+        if(!$debt) {
+            return response()->json(['message' => "deuda no encontrada"], 404);
+        }
+
+        return new DebtResource($debt);
+    }
 }

@@ -11,8 +11,8 @@ import {
   Wallet,
   Wrench,
   X,
-  BanknoteArrowDown, 
-  Settings
+  Settings,
+  BadgeDollarSign
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
@@ -25,7 +25,8 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
     { label: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />,},
     { label: "Cierre de Caja", path: "/registerClose", icon: <Wallet size={20} /> },
     { label: "Deudas", path: "/debts", icon: <HandCoins size={20} /> },
-    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />}
+    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />},
+    { label: "Pagos", path: "/payments", icon: <BadgeDollarSign size={20} />}
   ];
 
   return (

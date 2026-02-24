@@ -16,6 +16,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import Billinvoices_Page from "./pages/Invoices/Billinvoices_Page";
 import DebtsPage from "./pages/Debts/DebtsPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
+import PaymentsPage from "./pages/Payments/PaymentPage";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="invoices_Bill" element={<Billinvoices_Page />} />
             <Route path="registerClose" element={<RegisterClosePage />} />
             <Route path="debts" element={<DebtsPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>

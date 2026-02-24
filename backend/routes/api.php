@@ -70,4 +70,5 @@ Route::middleware('auth:sanctum')->group(function () {
     //Rutas de calculos
     Route::get('clientsInDebt', [ClientController::class, 'clientsInDebt']);
     Route::get('totalDebt', [DebtController::class, 'totalDebt']);
+    Route::get('/debtClient/{client}', [DebtController::class, 'debtClient']);
 });
