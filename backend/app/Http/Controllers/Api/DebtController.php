@@ -70,12 +70,12 @@ class DebtController extends Controller
 
     public function debtClient($clientId)
     {
-        $debt = Debt::where("client_id", $clientId)->first();
+        $totalDebt = Debt::where("client_id", $clientId)->sum('pending_balance');
 
-        if(!$debt) {
-            return response()->json(['message' => "deuda no encontrada"], 404);
+        if($totalDebt <= 0) {
+            return response()->json(['message' => "deudas no encontradas"], 404);
         }
 
-        return new DebtResource($debt);
+        return response()->json(['total_debt' => $totalDebt]);
     }
 }

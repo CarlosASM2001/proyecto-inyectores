@@ -157,10 +157,10 @@ class InvoiceController extends Controller
                     ]);
 
                     // Update invoice status to 'debt'
-                    $invoice->update(['status' => 'debt']);
+                    $invoice->update(['status' => 'Pendiente']);
                 } else {
                     // Mark invoice as paid
-                    $invoice->update(['status' => 'paid']);
+                    $invoice->update(['status' => 'Pagada']);
                 }
 
                 return response()->json([
