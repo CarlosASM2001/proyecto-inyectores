@@ -15,9 +15,27 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return ProductResource::collection(Product::all());
+        $query = Product::query();
+
+        if ($request->filled('name')) {
+            $query->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('status')) {
+            match ($request->status) {
+                'disponible'  => $query->whereColumn('actual_stock', '>', 'min_stock'),
+                'bajo_stock'  => $query->whereColumn('actual_stock', '<=', 'min_stock')
+                                       ->where('actual_stock', '>', 0),
+                'agotado'     => $query->where('actual_stock', 0),
+                default       => null,
+            };
+        }
+
+        $perPage = $request->integer('per_page', 10);
+
+        return ProductResource::collection($query->orderBy('name')->paginate($perPage));
     }
 
     /**
