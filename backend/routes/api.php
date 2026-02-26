@@ -41,9 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clients', ClientController::class);
     Route::post("/clients/Like", [ClientController::class, 'indexLike']);
 
+    Route::get("/products/inventory/filter", [ProductController::class, 'inventory']);
     Route::apiResource('products', ProductController::class);
     Route::post("/products/Like", [ProductController::class, 'indexLike']);
-    Route::get("/products/inventory/filter", [ProductController::class, 'inventory']);
 
     Route::apiResource('services', ServiceController::class);
     Route::post("/services/Like", [ServiceController::class, 'indexLike']);

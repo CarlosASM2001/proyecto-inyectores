@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../../service/api_Authorization";
 import ProductModal from "./ProductModal";
 import {
@@ -21,6 +21,8 @@ const STATUS_OPTIONS = [
   { value: "bajo_stock", label: "Bajo Stock" },
   { value: "agotado", label: "Agotado" },
 ];
+
+const PER_PAGE = 10;
 
 function getStatusBadge(product) {
   if (product.actual_stock === 0) {
@@ -66,31 +68,51 @@ function getStatusBadgeMobile(product) {
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [filterName, setFilterName] = useState("");
+  const [debouncedName, setDebouncedName] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [page, setPage] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     lastPage: 1,
     total: 0,
-    perPage: 10,
+    perPage: PER_PAGE,
   });
 
-  const PER_PAGE = 10;
+  const abortRef = useRef(null);
 
-  const fetchProducts = useCallback(
-    async (currentPage = page) => {
-      setLoading(true);
-      try {
-        const params = { page: currentPage, per_page: PER_PAGE };
-        if (filterName.trim()) params.name = filterName.trim();
-        if (filterStatus) params.status = filterStatus;
+  // Debounce name input by 400ms
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedName(filterName), 400);
+    return () => clearTimeout(timer);
+  }, [filterName]);
 
-        const { data } = await api.get("/products/inventory/filter", { params });
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedName, filterStatus]);
 
+  // Single effect that fetches data
+  useEffect(() => {
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+
+    const params = { page, per_page: PER_PAGE };
+    if (debouncedName.trim()) params.name = debouncedName.trim();
+    if (filterStatus) params.status = filterStatus;
+
+    api
+      .get("/products/inventory/filter", { params, signal: controller.signal })
+      .then(({ data }) => {
         setProducts(data.data ?? []);
         setPagination({
           currentPage: data.meta?.current_page ?? 1,
@@ -98,28 +120,25 @@ export default function ProductsPage() {
           total: data.meta?.total ?? 0,
           perPage: data.meta?.per_page ?? PER_PAGE,
         });
-      } catch {
+      })
+      .catch((err) => {
+        if (err.name === "CanceledError" || err.name === "AbortError") return;
+        console.error("Error fetching inventory:", err);
+        setError("Error al cargar inventario");
         setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [filterName, filterStatus, page],
-  );
+      })
+      .finally(() => setLoading(false));
 
-  useEffect(() => {
-    fetchProducts(page);
-  }, [page, fetchProducts]);
+    return () => controller.abort();
+  }, [page, debouncedName, filterStatus, refreshKey]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [filterName, filterStatus]);
+  const reload = () => setRefreshKey((k) => k + 1);
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Estás seguro de eliminar este producto?")) return;
     try {
       await api.delete(`/products/${id}`);
-      fetchProducts(page);
+      reload();
     } catch (err) {
       alert("No se pudo eliminar: " + err.message);
     }
@@ -133,7 +152,10 @@ export default function ProductsPage() {
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(pagination.lastPage, p + 1));
 
-  const startItem = (pagination.currentPage - 1) * pagination.perPage + 1;
+  const startItem =
+    pagination.total === 0
+      ? 0
+      : (pagination.currentPage - 1) * pagination.perPage + 1;
   const endItem = Math.min(
     pagination.currentPage * pagination.perPage,
     pagination.total,
@@ -198,6 +220,13 @@ export default function ProductsPage() {
         </div>
       </div>
 
+      {/* ERROR */}
+      {error && (
+        <div className="py-4 px-4 text-center text-sm font-bold text-red-600 bg-red-50 rounded-xl border border-red-200">
+          {error}
+        </div>
+      )}
+
       {/* LOADING */}
       {loading && (
         <div className="py-12 text-center font-black animate-pulse text-workshop-red uppercase tracking-widest text-sm">
@@ -206,7 +235,7 @@ export default function ProductsPage() {
       )}
 
       {/* CONTENT */}
-      {!loading && products.length > 0 && (
+      {!loading && !error && products.length > 0 && (
         <>
           {/* MOBILE LIST */}
           <div className="grid grid-cols-1 gap-3 lg:hidden">
@@ -364,7 +393,7 @@ export default function ProductsPage() {
       )}
 
       {/* EMPTY STATE */}
-      {!loading && products.length === 0 && (
+      {!loading && !error && products.length === 0 && (
         <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-gray-300">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 text-gray-300 mb-3">
             <Box size={28} />
@@ -383,7 +412,7 @@ export default function ProductsPage() {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            fetchProducts(page);
+            reload();
           }}
         />
       )}
