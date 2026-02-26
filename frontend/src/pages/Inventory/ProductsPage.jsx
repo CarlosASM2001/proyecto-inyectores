@@ -136,12 +136,6 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-  if (loading)
-    return (
-      <div className="p-8 text-center font-black animate-pulse text-workshop-red uppercase tracking-widest">
-        Cargando Inventario...
-      </div>
-    );
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(pagination.lastPage, p + 1));
