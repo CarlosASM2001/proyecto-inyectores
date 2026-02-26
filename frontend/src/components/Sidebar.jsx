@@ -66,7 +66,7 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
         </div>
 
         {/* Navigation - Con scroll interno si hay muchos items */}
-        <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto pt-2">
+        <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto pt-2 sidebar-scrollbar">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
