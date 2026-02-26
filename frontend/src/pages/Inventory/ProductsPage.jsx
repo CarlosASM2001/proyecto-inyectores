@@ -86,11 +86,11 @@ export default function ProductsPage() {
     async  (currentPage = page) => {
       setLoading(true);
       try{
-      const params = {page: currentPage, perPage: PER_PAGE};
+      const params = {page: currentPage, per_page: PER_PAGE};
       if (filterName.trim()) params.name = filterName.trim();
       if (filterStatus) params.status = filterStatus;
 
-      const { data } = await api.get("/products", { params });
+      const { data } = await api.get("/products/inventory/filter", { params });
 
       setProducts(data.data ?? []);
 
