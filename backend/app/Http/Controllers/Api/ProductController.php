@@ -15,7 +15,15 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
+    {
+        return ProductResource::collection(Product::all());
+    }
+
+    /**
+     * Filtered and paginated inventory listing.
+     */
+    public function inventory(Request $request)
     {
         $query = Product::query();
 

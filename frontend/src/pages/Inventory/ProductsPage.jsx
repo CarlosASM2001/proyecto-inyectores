@@ -89,7 +89,7 @@ export default function ProductsPage() {
         if (filterName.trim()) params.name = filterName.trim();
         if (filterStatus) params.status = filterStatus;
 
-        const { data } = await api.get("/products", { params });
+        const { data } = await api.get("/products/inventory/filter", { params });
 
         setProducts(data.data ?? []);
         setPagination({
