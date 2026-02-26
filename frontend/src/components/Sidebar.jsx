@@ -17,16 +17,17 @@ import {
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
   const navItems = [
-    { label: "Facturar", path: "/invoices_Bill", icon: <CreditCard size={18} />, },
     { label: "Panel General", path: "/dashboard", icon: <LayoutDashboard size={20} />,},
+    { label: "Facturar", path: "/invoices_Bill", icon: <CreditCard size={18} />, },
     { label: "Clientes", path: "/clients", icon: <Users size={20} /> },
     { label: "Inventario", path: "/products", icon: <Package size={20} /> },
     { label: "Servicios", path: "/services", icon: <Wrench size={20} /> },
     { label: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />,},
     { label: "Cierre de Caja", path: "/registerClose", icon: <Wallet size={20} /> },
     { label: "Deudas", path: "/debts", icon: <HandCoins size={20} /> },
-    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />},
-    { label: "Pagos", path: "/payments", icon: <BadgeDollarSign size={20} />}
+    { label: "Pagos", path: "/payments", icon: <BadgeDollarSign size={20} />},
+    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />}
+
   ];
 
   return (
@@ -66,7 +67,7 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
         </div>
 
         {/* Navigation - Con scroll interno si hay muchos items */}
-        <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto pt-2">
+        <nav className="flex-1 px-4 space-y-0.5 overflow-y-auto pt-2 sidebar-scrollbar">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
