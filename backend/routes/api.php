@@ -30,6 +30,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // RUTAS PRIVADAS
 // --------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/Status', [AuthController::class, 'Status']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 

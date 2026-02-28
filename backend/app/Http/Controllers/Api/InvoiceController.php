@@ -181,6 +181,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
+        $invoice->load(['Client', 'Products', 'Services', 'Payment', 'Debt']);
         return new InvoiceResource($invoice);
     }
 

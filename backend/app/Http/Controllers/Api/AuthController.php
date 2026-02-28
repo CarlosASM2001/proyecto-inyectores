@@ -10,6 +10,8 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Response;
+
 // Importamos la fachada de Hash que ya tienes, ¡genial!
 
 class AuthController extends Controller
@@ -21,9 +23,9 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']) 
+            'password' => Hash::make($data['password'])
         ]);
-        
+
         $token = $user->createToken('AuthTokenRegister')->plainTextToken;
 
         return (new UserResource($user))
@@ -42,11 +44,11 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Credenciales inválidas'
-            ], 401); 
+            ], 401);
         }
-        
-        $user = Auth::user(); 
-        
+
+        $user = Auth::user();
+
         $user->tokens()->delete();
 
         $token = $user->createToken('AuthTokenLogin')->plainTextToken;
@@ -72,5 +74,10 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logged out successfully (API Token removed)',
         ]);
+    }
+
+    public function Status(Request $request)
+    {
+        return response()->json(['message' => 'ok']);
     }
 }

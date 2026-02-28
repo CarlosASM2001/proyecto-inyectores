@@ -247,7 +247,7 @@ export default function Billinvoices_Page() {
 
       const paymentInfo = {
         amount: amountPaidInCOP,
-        currency: paidCurrency.name,
+        currency: paidCurrency.code,
         reference: paymentExchangeRate,
       };
 
@@ -309,7 +309,7 @@ export default function Billinvoices_Page() {
     setNotification({ show: true, type, message });
     setTimeout(
       () => setNotification({ show: false, type: "", message: "" }),
-      3000,
+      10000,
     );
   };
 
