@@ -4,7 +4,7 @@ namespace App\Http\Requests\Store;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreClientPaymentRequest extends FormRequest
+class StoreCreateRegisterCloseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,12 +22,8 @@ class StoreClientPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => ['date', 'required'],
-            'amount' => ['numeric', 'required', 'min:0'],
-            'currency' => ['string', 'required', 'min:3'],
-            'reference' => ['numeric', 'required', 'min:0'],
-            'description' => ['string', 'required', 'max:255'],
-            'client_id' => ['required', 'integer', 'exists:clients,id']
+            'date' => ['required', 'date', 'date_equals:today' . now()->format('Y-m-d')],
+            'description' => ['nullable', 'string', 'max:1000']
         ];
     }
 }

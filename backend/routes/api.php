@@ -77,4 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Rutas de pagos
     Route::post('/paymentClient', [PaymentController::class, 'paymentClient']);
+
+    //Ruta creacion de cierre de caja
+    Route::post('/createRegisterClose', [RegisterCloseController::class, 'createRegisterClose']);
 });

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Payment;
-use App\Models\Client;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Store\StoreClientPaymentRequest;
@@ -13,7 +12,6 @@ use App\Http\Requests\Update\UpdatePaymentRequest;
 use App\Models\Debt;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Request;
 
 class PaymentController extends Controller
 {
@@ -101,7 +99,7 @@ class PaymentController extends Controller
             }
 
             return response()->json([
-                'Vuelto' => $payment_amount
+                'change' => $payment_amount
             ]);
         });
     }

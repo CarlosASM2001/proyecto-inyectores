@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('register_close', function (Blueprint $table){
             $table->id();
-            $table->date('date');
+            $table->date('date')->unique();
             $table->decimal('final_amount', 12, 2);
             $table->decimal('COP_amount', 10, 2);
             $table->decimal('USD_amount', 10, 2);
