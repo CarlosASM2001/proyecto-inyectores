@@ -10,6 +10,7 @@ import {
   Wrench,
   CheckCircle,
   Clock,
+  CornerDownRight,
 } from "lucide-react";
 
 export default function InvoiceDetailsModal({ invoiceId, onClose }) {
@@ -54,9 +55,31 @@ export default function InvoiceDetailsModal({ invoiceId, onClose }) {
     invoice.status?.toLowerCase() === "paid";
   const invoiceNumber = `#INV-${invoice.id.toString().padStart(5, "0")}`;
 
+  // -------------------------------------------------------------------
+  // LÓGICA DE AGRUPACIÓN: Cruzar servicios con sus repuestos
+  // -------------------------------------------------------------------
+  const structuredServices =
+    invoice.services?.map((serv) => {
+      // Buscar los productos que pertenecen a este servicio
+      const parts =
+        invoice.products?.filter(
+          (prod) =>
+            prod.service_id == serv.id ||
+            String(prod.service_id) === `${serv.id}`,
+        ) || [];
+      return { ...serv, parts };
+    }) || [];
+
+  // Productos que son ventas directas (no pertenecen a ningún servicio)
+  const standaloneProducts =
+    invoice.products?.filter(
+      (prod) =>
+        prod.service_id == -1 ||
+        !structuredServices.some((s) => s.parts.includes(prod)),
+    ) || [];
+
   return (
     <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:bg-white print:p-0">
-      {/* CARD MODAL */}
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:w-full">
         {/* HEADER */}
         <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-start print:hidden">
@@ -72,12 +95,14 @@ export default function InvoiceDetailsModal({ invoiceId, onClose }) {
             <button
               onClick={handlePrint}
               className="p-2 text-gray-500 hover:text-workshop-dark hover:bg-gray-200 rounded-xl transition-all"
+              title="Imprimir Recibo"
             >
               <Printer size={20} />
             </button>
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-workshop-red hover:bg-red-50 rounded-xl transition-all"
+              title="Cerrar"
             >
               <X size={24} />
             </button>
@@ -136,27 +161,30 @@ export default function InvoiceDetailsModal({ invoiceId, onClose }) {
             </div>
           </div>
 
-          {/* Tabla de Items */}
+          {/* Tabla de Conceptos */}
           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-100 pb-2">
             Detalle de Conceptos
           </h4>
 
           <div className="space-y-3 mb-8">
-            {/* SERVICIOS */}
-            {invoice.services &&
-              invoice.services.map((serv, idx) => (
-                <div
-                  key={`serv-${idx}`}
-                  className="flex justify-between items-center bg-white border border-gray-100 p-3 rounded-xl shadow-sm"
-                >
+            {/* SERVICIOS (Con repuestos anidados) */}
+            {structuredServices.map((serv, idx) => (
+              <div
+                key={`serv-${idx}`}
+                className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm"
+              >
+                {/* Cabecera del Servicio */}
+                <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
+                    <div className="bg-blue-50 text-blue-600 p-2 rounded-lg shrink-0">
                       <Wrench size={16} />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">{serv.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {serv.quantity}x $
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {serv.name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Mano de obra: {serv.quantity}x $
                         {Number(serv.unitary_price).toLocaleString()}
                       </p>
                     </div>
@@ -165,54 +193,80 @@ export default function InvoiceDetailsModal({ invoiceId, onClose }) {
                     ${Number(serv.subtotal).toLocaleString()}
                   </p>
                 </div>
-              ))}
 
-            {/* PRODUCTOS */}
-            {invoice.products &&
-              invoice.products.map((prod, idx) => {
-                // Si tiene service_id != -1, significa que es un repuesto usado dentro de un servicio (si quieres mostrarlo diferente)
-                const isPart = prod.service_id && prod.service_id !== -1;
-                return (
-                  <div
-                    key={`prod-${idx}`}
-                    className="flex justify-between items-center bg-white border border-gray-100 p-3 rounded-xl shadow-sm ml-0"
-                  >
-                    <div className="flex items-center gap-3">
+                {/* Sub-lista de Repuestos (Solo se renderiza si el servicio tiene productos) */}
+                {serv.parts.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-50 space-y-2 pl-11">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                      Repuestos Utilizados:
+                    </p>
+                    {serv.parts.map((part, pIdx) => (
                       <div
-                        className={`p-2 rounded-lg ${isPart ? "bg-gray-100 text-gray-500" : "bg-green-50 text-green-600"}`}
+                        key={`part-${pIdx}`}
+                        className="flex justify-between items-center text-sm"
                       >
-                        <Package size={16} />
+                        <div className="flex items-center gap-2 text-gray-600 overflow-hidden">
+                          <CornerDownRight
+                            size={14}
+                            className="text-gray-300 shrink-0"
+                          />
+                          <Package
+                            size={14}
+                            className="text-gray-400 shrink-0"
+                          />
+                          <span className="font-medium truncate">
+                            {part.name}
+                          </span>
+                          <span className="text-xs text-gray-400 shrink-0">
+                            ({part.quantity}x $
+                            {Number(part.unitary_price).toLocaleString()})
+                          </span>
+                        </div>
+                        <span className="font-bold text-gray-700 shrink-0 ml-2">
+                          ${Number(part.subtotal).toLocaleString()}
+                        </span>
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-900">
-                          {prod.name}{" "}
-                          {isPart && (
-                            <span className="text-[9px] bg-gray-100 px-2 py-0.5 rounded-full text-gray-500 ml-2 uppercase">
-                              Repuesto
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {prod.quantity}x $
-                          {Number(prod.unitary_price).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="font-black text-gray-900">
-                      ${Number(prod.subtotal).toLocaleString()}
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* PRODUCTOS SUELTOS (Venta Directa sin servicio) */}
+            {standaloneProducts.map((prod, idx) => (
+              <div
+                key={`prod-${idx}`}
+                className="flex justify-between items-center bg-white border border-gray-100 p-4 rounded-xl shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-50 text-green-600 p-2 rounded-lg shrink-0">
+                    <Package size={16} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 leading-tight">
+                      {prod.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {prod.quantity}x $
+                      {Number(prod.unitary_price).toLocaleString()}
                     </p>
                   </div>
-                );
-              })}
+                </div>
+                <p className="font-black text-gray-900">
+                  ${Number(prod.subtotal).toLocaleString()}
+                </p>
+              </div>
+            ))}
 
+            {/* Mensaje de vacío (por si acaso) */}
             {!invoice.services?.length && !invoice.products?.length && (
               <p className="text-sm text-gray-400 italic text-center py-4">
-                No se encontraron items. (Actualiza el backend como se indica).
+                No se encontraron items registrados.
               </p>
             )}
           </div>
 
-          {/* TOTALES */}
+          {/* TOTALES Y PAGOS */}
           <div className="flex justify-end pt-4 border-t-2 border-dashed border-gray-200">
             <div className="w-full max-w-xs space-y-3">
               <div className="flex justify-between items-center text-xl">
@@ -224,21 +278,25 @@ export default function InvoiceDetailsModal({ invoiceId, onClose }) {
                 </span>
               </div>
 
-              {/* Si hay pagos, mostrarlos */}
               {invoice.payments && invoice.payments.length > 0 && (
                 <div className="pt-3 border-t border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
-                    <CreditCard size={12} /> Pagos Registrados
+                    <CreditCard size={12} /> Historial de Pagos
                   </p>
                   {invoice.payments.map((pay, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between text-sm mb-1 text-gray-600"
+                      className="flex justify-between text-sm mb-1.5 bg-gray-50 p-2 rounded-lg"
                     >
-                      <span>
-                        {pay.currency} (Tasa: {pay.reference})
-                      </span>
-                      <span className="font-bold text-green-600">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-700">
+                          {pay.currency}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          Tasa: {pay.reference}
+                        </span>
+                      </div>
+                      <span className="font-black text-green-600 self-center">
                         ${Number(pay.amount).toLocaleString()}
                       </span>
                     </div>
