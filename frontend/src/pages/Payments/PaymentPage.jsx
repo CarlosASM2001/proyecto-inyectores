@@ -7,7 +7,7 @@ import { UserCircle, DollarSign, ArrowLeft, CheckCircle, AlertCircle } from "luc
 export default function PaymentPage() {
     const [selectedClient, setSelectedClient] = useState(null);
     const [clientSearchText, setClientSearchText] = useState("");
-    const [totalDebt, setTotalDebt] = useState(0);
+    const [totalDebt, setTotalDebt] = useState(null);
     const [readyForPayment, setReadyForPayment] = useState(false);
     const [change, setChange] = useState(null);
     const [error, setError] = useState("");
@@ -25,7 +25,7 @@ export default function PaymentPage() {
         setChange(null);
         setSelectedClient(null);
         setClientSearchText("");
-        setTotalDebt(0); // Es buena práctica limpiar la deuda al limpiar el cliente
+        setTotalDebt(null);
     };
 
     const handleDebtClient = async (client) => {
@@ -34,7 +34,12 @@ export default function PaymentPage() {
             const data = await api.get(`/debtClient/${client.id}`);
             setTotalDebt((data.total_debt ?? data.data?.total_debt ?? 0));
         } catch (e) {
-            setError("Hubo un problema al cargar la deuda del cliente.");
+            if(e.response && e.response.status === 404){
+                setTotalDebt(null);
+                setError("El cliente no tiene deuda!")
+            }else {
+                setError("Hubo un problema al cargar la deuda del cliente.");
+            }
         }
     }
 
@@ -102,7 +107,7 @@ export default function PaymentPage() {
                     </div>
 
                     {/* Fila 2: Resumen de Deuda (Solo visible si hay cliente seleccionado) */}
-                    {selectedClient && (
+                    {selectedClient && (totalDebt !== null) && (
                         <div className="bg-white rounded-3xl p-8 text-white shadow-xl animate-in fade-in slide-in-from-bottom-4">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Deuda Actual Total</p>
                             <h2 className="text-4xl font-black italic tracking-tighter mb-6 text-black">
