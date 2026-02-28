@@ -247,7 +247,7 @@ export default function Billinvoices_Page() {
 
       const paymentInfo = {
         amount: amountPaidInCOP,
-        currency: paidCurrency.name,
+        currency: paidCurrency.code,
         reference: paymentExchangeRate,
       };
 

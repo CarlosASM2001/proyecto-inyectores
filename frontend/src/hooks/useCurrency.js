@@ -2,21 +2,24 @@ import { useState, useEffect } from "react";
 
 export const CURRENCIES = {
   PESOS: {
-    name: "COP",
+    name: "Pesos",
     symbol: "COP",
+    code: "COP",
     key: "",
     rate: 1,
   },
   DOLLARS: {
-    name: "USD",
+    name: "Dolares",
     symbol: "$",
+    code: "USD",
     key: "exchange_rate_usd",
     rate: 1,
   },
   BOLIVARES: {
-    name: "VES",
+    name: "Bolivares",
     symbol: "BS",
-    key: "exchange_rate_ves", // Clave vinculada a la base de datos/localStorage
+    code: "VES",
+    key: "exchange_rate_ves",
     rate: 1,
   },
 };
