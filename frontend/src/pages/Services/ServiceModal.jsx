@@ -92,15 +92,17 @@ export default function ServiceModal({
     setProductsSearch(Txt);
     if (Txt.length >= 2) {
       setIsSearching(true);
-      try {
-        const response = await api.post("/products/Like", { Seach: Txt });
-        setProducts_List(response.data.data || []);
-      } catch (error) {
-        console.error(error);
-        setProducts_List([]);
-      } finally {
-        setIsSearching(false);
-      }
+      setTimeout(async () => {
+        try {
+          const response = await api.post("/products/Like", { Seach: Txt });
+          setProducts_List(response.data.data || []);
+        } catch (error) {
+          console.error(error);
+          setProducts_List([]);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 1000);
     } else {
       setProducts_List([]);
     }

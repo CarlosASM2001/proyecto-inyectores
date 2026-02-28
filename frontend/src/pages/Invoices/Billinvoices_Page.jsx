@@ -309,7 +309,7 @@ export default function Billinvoices_Page() {
     setNotification({ show: true, type, message });
     setTimeout(
       () => setNotification({ show: false, type: "", message: "" }),
-      3000,
+      10000,
     );
   };
 
