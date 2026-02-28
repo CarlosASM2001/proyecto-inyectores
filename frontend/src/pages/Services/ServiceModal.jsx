@@ -22,7 +22,7 @@ export default function ServiceModal({
     base_price: "",
   });
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(null);
 
   // Estados para los productos
   const [Products_Select, setProducts_Select] = useState([]);
@@ -59,7 +59,7 @@ export default function ServiceModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setErrors({});
+    setErrors(null);
     try {
       const requestData = {
         ...formData,
@@ -77,7 +77,7 @@ export default function ServiceModal({
       }
       onSuccess();
     } catch (err) {
-      if (err.response?.status === 422) setErrors(err.response.data.errors);
+      if (err.response?.status === 422) setErrors(err.response.data.message);
       else
         alert(
           "Error: " + (err.response?.data?.message || "No se pudo guardar"),
@@ -201,6 +201,9 @@ export default function ServiceModal({
               <p className="text-[10px] font-bold text-workshop-red uppercase tracking-widest mt-1">
                 Ficha Técnica
               </p>
+              {errors && (
+                <p className="mt-1 text-xs font-bold text-red-500">{errors}</p>
+              )}
             </div>
           </div>
           <button
@@ -235,11 +238,6 @@ export default function ServiceModal({
                     className={inputClass}
                     placeholder="Ej. Calibración Electrónica"
                   />
-                  {errors.name && (
-                    <p className="mt-1 text-xs font-bold text-red-500">
-                      {errors.name[0]}
-                    </p>
-                  )}
                 </div>
 
                 <div>
