@@ -1,15 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import api from "../../service/api_Authorization";
-import {
-  X,
-  Save,
-  Wrench,
-  Search,
-  Package,
-  Plus,
-  Minus,
-  Trash2,
-} from "lucide-react";
+import { X, Save, Wrench } from "lucide-react";
+import ProductoService_Componet from "../../components/ProductoService_Componet";
 
 export default function ServiceModal({
   onClose,
@@ -22,16 +14,12 @@ export default function ServiceModal({
     base_price: "",
   });
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  // Estados para los productos
   const [Products_Select, setProducts_Select] = useState([]);
   const [Products_List, setProducts_List] = useState([]);
   const [ProductsSearch, setProductsSearch] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-
-  // Referencia para el scroll automático
-  const listEndRef = useRef(null);
+  const [Typing, setTyping] = useState(false);
 
   // Cargar productos del servicio cuando se edita
   useEffect(() => {
@@ -41,6 +29,7 @@ export default function ServiceModal({
         description: serviceData.description || "",
         base_price: serviceData.base_price || "",
       });
+
       loadServiceProducts(serviceData.id);
     }
   }, [serviceData]);
@@ -48,27 +37,33 @@ export default function ServiceModal({
   const loadServiceProducts = async (serviceId) => {
     try {
       const response = await api.get(`/services/${serviceId}/products`);
+
       if (response.data.data && Array.isArray(response.data.data)) {
-        setProducts_Select(response.data.data);
+        const products = response.data.data;
+        setProducts_Select(products);
+      } else {
+        setProducts_Select([]);
       }
     } catch (error) {
       console.error("Error al cargar productos del servicio:", error);
+      setProducts_Select([]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setErrors(null);
+    setErrors({});
     try {
       const requestData = {
         ...formData,
         products: Products_Select.map((p) => ({
           id: p.id,
-          // Aseguramos que se envíe un número válido, de lo contrario 1
-          quantity: parseInt(p.quantity) || 1,
+          quantity: p.quantity || 1,
         })),
       };
+
+      console.log("Enviando datos al servidor:", requestData);
 
       if (serviceData) {
         await api.put(`/services/${serviceData.id}`, requestData);
@@ -77,7 +72,7 @@ export default function ServiceModal({
       }
       onSuccess();
     } catch (err) {
-      if (err.response?.status === 422) setErrors(err.response.data.message);
+      if (err.response?.status === 422) setErrors(err.response.data.errors);
       else
         alert(
           "Error: " + (err.response?.data?.message || "No se pudo guardar"),
@@ -87,100 +82,54 @@ export default function ServiceModal({
     }
   };
 
-  // Lógica de Búsqueda
   const fun_ProductsSearch = async (Txt) => {
     setProductsSearch(Txt);
-    if (Txt.length >= 2) {
-      setIsSearching(true);
-      setTimeout(async () => {
-        try {
-          const response = await api.post("/products/Like", { Seach: Txt });
-          setProducts_List(response.data.data || []);
-        } catch (error) {
-          console.error(error);
-          setProducts_List([]);
-        } finally {
-          setIsSearching(false);
-        }
-      }, 1000);
-    } else {
+    if (Txt.length > 2 && !Typing) {
+      setTyping(true);
+      setProducts_List([]);
+      const Prods = await BuscarProducto(Txt);
+      setProducts_List(Prods);
+      setTyping(false);
+    } else if (Txt.length == 0) {
       setProducts_List([]);
     }
   };
 
-  // Agregar Producto (Previene duplicados) y hace Scroll Inteligente
-  const fun_AddProduct = (product) => {
-    setProducts_Select((prev) => {
-      const exists = prev.find((p) => p.id === product.id);
-      if (exists) {
-        return prev.map((p) =>
-          p.id === product.id
-            ? { ...p, quantity: (parseInt(p.quantity) || 1) + 1 }
-            : p,
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-
+  const fun_AddProducts = async (Pro) => {
+    let ax_p = Products_Select.map((p) => p);
+    Pro.quantity = 1;
+    ax_p.push(Pro);
+    setProducts_Select(ax_p);
     setProductsSearch("");
     setProducts_List([]);
-
-    // Scroll inteligente: 'nearest' solo mueve el scroll lo mínimo necesario
-    // para que el final de la lista sea visible en pantalla.
-    setTimeout(() => {
-      listEndRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }, 100);
   };
 
-  // Actualizar cantidad desde botones (+ / -)
-  const updateQuantity = (id, delta) => {
-    setProducts_Select((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const currentQty = parseInt(p.quantity) || 0;
-          const newQuantity = Math.max(1, currentQty + delta);
-          return { ...p, quantity: newQuantity };
-        }
-        return p;
-      }),
-    );
+  const BorrarProducto = (Pro) => {
+    setProducts_Select((Prev) => Prev.filter((p) => p.id != Pro.id));
   };
 
-  // Escribir directamente la cantidad (Input manual)
-  const handleManualQuantityChange = (id, value) => {
-    setProducts_Select((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          // Permitimos cadena vacía temporalmente para que el usuario pueda borrar y reescribir
-          return { ...p, quantity: value === "" ? "" : parseInt(value) };
-        }
-        return p;
-      }),
-    );
+  const Producto_UpdaCant = (Pro, quantity) => {
+    setProducts_Select((Prev) => {
+      const updated = [...Prev];
+      const index = updated.findIndex((p) => p.id === Pro.id);
+      if (index !== -1) {
+        updated[index].quantity = quantity;
+      }
+      return updated;
+    });
   };
 
-  // Al perder el foco (onBlur), validamos que no quede vacío o en cero
-  const handleQuantityBlur = (id, value) => {
-    setProducts_Select((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const val = parseInt(value);
-          return { ...p, quantity: isNaN(val) || val < 1 ? 1 : val };
-        }
-        return p;
-      }),
-    );
-  };
-
-  const removeProduct = (id) => {
-    setProducts_Select((prev) => prev.filter((p) => p.id !== id));
+  const BuscarProducto = async (txt) => {
+    let Productos = await api.post("/products/Like", { Seach: txt });
+    if (Productos.data.data) {
+      return Productos.data.data;
+    } else {
+      return [];
+    }
   };
 
   const inputClass =
-    "w-full px-4 py-3 rounded-xl border border-gray-200 font-bold focus:border-workshop-red focus:ring-4 focus:ring-red-500/10 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]";
+    "w-full px-4 py-3 rounded-xl border border-gray-200 font-bold focus:border-workshop-red focus:ring-4 focus:ring-red-500/10 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal";
 
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
@@ -188,45 +137,33 @@ export default function ServiceModal({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-
-      <div className="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
-        {/* HEADER FIJO */}
-        <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-workshop-dark flex items-center justify-center text-white shadow-lg">
-              <Wrench size={20} />
-            </div>
-            <div>
-              <h3 className="font-black tracking-tighter text-gray-900 uppercase leading-none">
+      <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        {/* Contenedor exterior con altura máxima y scroll */}
+        <div className="max-h-[90vh] flex flex-col">
+          {/* Header fijo */}
+          <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-workshop-dark flex items-center justify-center text-white">
+                <Wrench size={20} />
+              </div>
+              <h3 className="font-black tracking-tighter text-gray-900 uppercase">
                 {serviceData ? "Editar Trabajo" : "Nuevo Servicio"}
               </h3>
-              <p className="text-[10px] font-bold text-workshop-red uppercase tracking-widest mt-1">
-                Ficha Técnica
-              </p>
-              {errors && (
-                <p className="mt-1 text-xs font-bold text-red-500">{errors}</p>
-              )}
             </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 bg-white p-2 rounded-xl shadow-sm border border-gray-200 transition-all"
-          >
-            <X size={20} />
-          </button>
-        </div>
 
-        {/* CONTENIDO SCROLLEABLE */}
-        <div className="grow overflow-y-auto px-8 py-6">
-          <form id="serviceForm" onSubmit={handleSubmit} className="space-y-8">
-            {/* 1. DATOS BÁSICOS */}
-            <div className="space-y-4">
-              <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2">
-                Información del Servicio
-              </h4>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
+          {/* Contenido scrolleable */}
+          <div className="flex-grow overflow-y-auto px-8 py-6 space-y-5">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-5">
+                {/* Campos básicos del servicio */}
+                <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
                     Nombre del Servicio
                   </label>
@@ -240,11 +177,31 @@ export default function ServiceModal({
                     className={inputClass}
                     placeholder="Ej. Calibración Electrónica"
                   />
+                  {errors.name && (
+                    <p className="mt-1 text-xs font-bold text-red-500">
+                      {errors.name[0]}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                    Mano de Obra ($)
+                    Descripción
+                  </label>
+                  <textarea
+                    rows="3"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    className={inputClass}
+                    placeholder="Detalles de lo que incluye el servicio..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                    Precio Base ($)
                   </label>
                   <input
                     type="number"
@@ -255,180 +212,97 @@ export default function ServiceModal({
                       setFormData({ ...formData, base_price: e.target.value })
                     }
                     className={inputClass}
-                    placeholder="0.00"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
-                  Descripción Detallada
-                </label>
-                <textarea
-                  rows="2"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className={`${inputClass} resize-none`}
-                  placeholder="Detalles de lo que incluye el servicio..."
-                />
-              </div>
-            </div>
+                {/* SECCIÓN DE PRODUCTOS CON CONTENEDOR SCROLL */}
+                <div className="flex-grow flex flex-col min-h-0">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                    Productos del Servicio
+                  </label>
 
-            {/* 2. REPUESTOS / PRODUCTOS ASOCIADOS */}
-            <div className="space-y-4">
-              <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 flex items-center justify-between">
-                <span>Repuestos Necesarios</span>
-                <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-md text-[10px]">
-                  Opcional
-                </span>
-              </h4>
+                  {/* Búsqueda de productos */}
+                  <div className="mb-3">
+                    <input
+                      className={inputClass}
+                      value={ProductsSearch}
+                      onChange={(e) => {
+                        fun_ProductsSearch(e.target.value);
+                      }}
+                      placeholder="Buscar productos..."
+                    />
 
-              {/* Buscador de Productos */}
-              <div className="relative">
-                <Search
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  type="text"
-                  className={`${inputClass} pl-11`}
-                  value={ProductsSearch}
-                  onChange={(e) => fun_ProductsSearch(e.target.value)}
-                  placeholder="Buscar repuestos o consumibles para agregar..."
-                />
-                {isSearching && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-workshop-red border-t-transparent rounded-full animate-spin"></div>
-                )}
-
-                {/* Dropdown de Resultados */}
-                {Products_List.length > 0 && (
-                  <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
-                    {Products_List.map((p) => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => fun_AddProduct(p)}
-                        className="w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-red-50 hover:text-workshop-red transition-colors flex justify-between items-center group"
-                      >
-                        <div>
-                          <p className="font-bold text-gray-900 group-hover:text-workshop-red">
-                            {p.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Stock actual: {p.actual_stock}
-                          </p>
-                        </div>
-                        <span className="font-black">${p.price}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Lista de Productos Seleccionados */}
-              {Products_Select.length > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-3 mt-4">
-                  {Products_Select.map((p) => (
-                    <div
-                      key={p.id}
-                      className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm"
-                    >
-                      {/* Info del Producto */}
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="p-2 bg-green-50 text-green-600 rounded-lg shrink-0">
-                          <Package size={16} />
-                        </div>
-                        <div className="truncate pr-4">
-                          <p className="font-black text-gray-900 text-sm truncate">
-                            {p.name}
-                          </p>
-                          <p className="text-xs text-gray-500 font-medium">
-                            ${p.price} / und
-                          </p>
-                        </div>
+                    {/* Resultados de búsqueda limitados */}
+                    {Products_List.length > 0 && (
+                      <div className="max-h-32 overflow-y-auto bg-white border border-gray-200 rounded-lg mt-1">
+                        <ul className="p-2">
+                          {Products_List.map((p) => (
+                            <li key={p.id} className="mb-1 last:mb-0">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  fun_AddProducts(p);
+                                }}
+                                className="w-full text-left px-3 py-2 rounded hover:bg-workshop-red/10 transition-colors"
+                              >
+                                {p.name} - ${p.price}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
+                    )}
+                  </div>
 
-                      {/* Controles y Eliminar */}
-                      <div className="flex items-center gap-4 shrink-0">
-                        {/* Selector de Cantidad Editable */}
-                        <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(p.id, -1)}
-                            className="p-2 text-gray-500 hover:bg-gray-200 hover:text-workshop-red transition-colors"
-                          >
-                            <Minus size={14} />
-                          </button>
+                  {/* Lista de productos seleccionados */}
+                  {Products_Select.length > 0 && (
+                    <div className="flex-grow flex flex-col min-h-0">
+                      <h4 className="text-sm font-bold text-gray-700 mb-2">
+                        Seleccionados ({Products_Select.length}):
+                      </h4>
 
-                          {/* 
-                            Clases clave añadidas:
-                            - [&::-webkit-inner-spin-button]:appearance-none -> Quita flechas en Chrome/Safari/Edge
-                            - [&::-webkit-outer-spin-button]:appearance-none -> Quita flechas en Chrome/Safari/Edge
-                            - [-moz-appearance:textfield] -> Quita flechas en Firefox
-                          */}
-                          <input
-                            type="number"
-                            value={p.quantity}
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) =>
-                              handleManualQuantityChange(p.id, e.target.value)
-                            }
-                            onBlur={(e) =>
-                              handleQuantityBlur(p.id, e.target.value)
-                            }
-                            className="w-10 text-center font-black text-sm text-gray-900 bg-transparent outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
-                            min="1"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() => updateQuantity(p.id, 1)}
-                            className="p-2 text-gray-500 hover:bg-gray-200 hover:text-green-600 transition-colors"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-
-                        {/* Botón Eliminar */}
-                        <button
-                          type="button"
-                          onClick={() => removeProduct(p.id)}
-                          className="p-2 text-gray-400 hover:text-workshop-red hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                      <div className="flex-grow bg-gray-50 rounded-lg overflow-y-auto max-h-48">
+                        <ul className="p-3 space-y-3">
+                          {Products_Select.map((p) => (
+                            <li
+                              key={p.id}
+                              className="bg-white p-3 rounded-md shadow-sm border border-gray-100"
+                            >
+                              <ProductoService_Componet
+                                Producto={p}
+                                BorrarProducto={BorrarProducto}
+                                Producto_UpdaCant={Producto_UpdaCant}
+                              ></ProductoService_Componet>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
-                  ))}
-
-                  {/* Div invisible al final para el Auto-Scroll */}
-                  <div ref={listEndRef} />
+                  )}
                 </div>
-              )}
-            </div>
-          </form>
-        </div>
+              </div>
+            </form>
+          </div>
 
-        {/* FOOTER FIJO */}
-        <div className="shrink-0 px-8 py-5 bg-gray-50 border-t border-gray-200 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-600 font-black text-xs uppercase tracking-widest hover:bg-gray-100 transition-all shadow-sm"
-          >
-            Cancelar
-          </button>
-          <button
-            form="serviceForm"
-            type="submit"
-            disabled={saving}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-workshop-dark text-white font-black text-xs uppercase tracking-widest hover:bg-workshop-red transition-all shadow-lg disabled:opacity-50"
-          >
-            <Save size={18} />
-            {saving ? "Procesando..." : "Guardar Servicio"}
-          </button>
+          {/* Footer fijo con botones */}
+          <div className="flex-shrink-0 px-8 py-6 flex gap-3 bg-gray-50 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-workshop-dark text-white font-black text-xs uppercase tracking-widest hover:bg-workshop-red transition-all shadow-lg disabled:opacity-50"
+            >
+              <Save size={18} />
+              {saving ? "..." : "GUARDAR"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

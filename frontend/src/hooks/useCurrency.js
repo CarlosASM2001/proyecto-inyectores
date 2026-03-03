@@ -4,22 +4,19 @@ export const CURRENCIES = {
   PESOS: {
     name: "Pesos",
     symbol: "COP",
-    code: "COP",
     key: "",
     rate: 1,
   },
   DOLLARS: {
     name: "Dolares",
     symbol: "$",
-    code: "USD",
     key: "exchange_rate_usd",
     rate: 1,
   },
   BOLIVARES: {
     name: "Bolivares",
     symbol: "BS",
-    code: "VES",
-    key: "exchange_rate_ves",
+    key: "exchange_rate_ves", // Clave vinculada a la base de datos/localStorage
     rate: 1,
   },
 };

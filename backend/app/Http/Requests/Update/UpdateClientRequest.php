@@ -24,9 +24,9 @@ class UpdateClientRequest extends FormRequest
         $id = $this->route('client');
 
         return [
-            'name'   => ['required', 'string', 'max:255', 'min:10'],
-            'phone'  => ['nullable', 'string', 'max:20', 'min:11', 'regex:/^[0-9- +()]*$/'],
-            'cedula' => ['required', 'string', 'max:20', 'min:7'],
+            'name'   => ['required', 'string', 'max:255'],
+            'phone'  => ['nullable', 'string', 'max:20'],
+            'cedula' => ['required', 'string', 'max:20', 'unique:clients,cedula'],
         ];
     }
 }

@@ -1,5 +1,4 @@
 import axios from "axios";
-import DesAuth from "./Auth/DesAuth";
 
 const configuredBaseUrl = (import.meta.env.VITE_API_URL || "/api")
   .trim()
@@ -22,31 +21,5 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-// Manejar respuestas exitosas
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    //console.log("❌ Error interceptor:", error);
-
-    if (error.response) {
-      const status = error.response.status;
-
-      if (status === 401) {
-        console.log("🔒 Detectado error 401 - desautenticando...");
-        DesAuth();
-      } else if (status === 403) {
-        console.log("🔒 Detectado error 403 - acceso prohibido");
-      } else if (status >= 500) {
-        console.log("💥 Error del servidor:", error.response.data);
-      }
-    }
-
-    // Re-lanzar el error para que pueda ser manejado por el código que hizo la petición
-    return Promise.reject(error);
-  },
-);
 
 export default api;

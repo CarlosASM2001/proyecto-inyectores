@@ -22,9 +22,9 @@ class StoreClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'min:10'],
-            'phone' => ['required', 'string', 'max:100', 'min:11', 'regex:/^[0-9- +()]*$/'],
-            'cedula' => ['required', 'string', 'max:100', 'min:7', 'unique:clients,cedula'],
+            'name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'max:100'],
+            'cedula' => ['required', 'string', 'max:100', 'unique:clients,cedula'],
         ];
     }
 }

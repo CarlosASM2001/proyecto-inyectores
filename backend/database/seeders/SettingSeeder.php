@@ -35,12 +35,12 @@ class SettingSeeder extends Seeder
             ],
             [
                 'key' => 'company_name',
-                'value' => 'Servicio de Inyectores El Profe .BT',
+                'value' => 'Inyectores S.A.S',
                 'description' => 'Nombre de la empresa'
             ],
             [
                 'key' => 'company_phone',
-                'value' => '+58 426 123 4567',
+                'value' => '+57 310 123 4567',
                 'description' => 'Teléfono de contacto de la empresa'
             ],
             [

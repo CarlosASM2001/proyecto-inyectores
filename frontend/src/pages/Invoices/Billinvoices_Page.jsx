@@ -6,7 +6,6 @@ import ClientSearch from "../../components/Invoices/ClientSearch";
 import ProductSearch from "../../components/Invoices/ProductSearch";
 import CartSummary from "../../components/Invoices/CartSummary";
 import PaymentSection from "../../components/Invoices/PaymentSection";
-import DebtConfirmationModal from "../../components/Invoices/DebtConfirmationModal";
 import { FileText, UserCircle, Package, CheckCircle } from "lucide-react";
 import { CURRENCIES } from "../../hooks/useCurrency";
 import Comprobar from "../../service/Invoices/Comprobar_ItemFact";
@@ -32,11 +31,6 @@ export default function Billinvoices_Page() {
     type: "",
     message: "",
   });
-
-  // Estado para verificación de deuda
-  const [showDebtConfirmation, setShowDebtConfirmation] = useState(false);
-  const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
-    useState(false);
 
   // Estado de pago
   const [amountPaid, setAmountPaid] = useState(0);
@@ -182,7 +176,7 @@ export default function Billinvoices_Page() {
     showNotification("info", "Item removido del carrito");
   };
 
-  // Handler para verificar y procesar el pago con modal de deuda
+  // Handler de pago
   const handleProcessPayment = async () => {
     if (isProcessing) {
       return;
@@ -209,45 +203,18 @@ export default function Billinvoices_Page() {
       return;
     }
 
-    // Calcular totales para verificar deuda
-    const totalInCOP = calculateTotal();
-    const amountPaidInCOP = amountPaid * paymentExchangeRate;
-    const debtCondition = totalInCOP - amountPaidInCOP > 0.009;
-
-    // Si hay condición de deuda y no está esperando confirmación, mostrar modal
-    if (debtCondition && !isWaitingForConfirmation) {
-      // Ajustar monto pagado si supera el total
-      let adjustedAmountPaid = amountPaid;
-      if (amountPaidInCOP > totalInCOP) {
-        adjustedAmountPaid = totalInCOP / paymentExchangeRate;
-      }
-
-      // Guardar el monto ajustado para mostrar en la modal
-      setAmountPaid(parseFloat(adjustedAmountPaid.toFixed(2)));
-      setShowDebtConfirmation(true);
-      setIsWaitingForConfirmation(true);
-      return;
-    }
-
-    // Ya confirmó la deuda o no hay condición, proceder con el procesamiento
-    await processInvoice();
-  };
-
-  // Función separada para procesar la factura
-  const processInvoice = async () => {
     setIsProcessing(true);
     try {
       const totalInCOP = calculateTotal();
       let amountPaidInCOP = amountPaid * paymentExchangeRate;
 
-      // Si el pago supera el total, ajustar al total
       if (amountPaidInCOP > totalInCOP) {
         amountPaidInCOP = totalInCOP / paymentExchangeRate;
       }
 
       const paymentInfo = {
         amount: amountPaidInCOP,
-        currency: paidCurrency.code,
+        currency: paidCurrency.name,
         reference: paymentExchangeRate,
       };
 
@@ -267,8 +234,6 @@ export default function Billinvoices_Page() {
         setProductSearchText("");
         setClientSearchText("");
         setAmountPaid(0);
-        setShowDebtConfirmation(false);
-        setIsWaitingForConfirmation(false);
 
         // Retrasar notificación para mejor UX
         setTimeout(() => {
@@ -289,27 +254,12 @@ export default function Billinvoices_Page() {
     }
   };
 
-  // Handlers para la modal de deuda
-  const handleDebtConfirmation = () => {
-    setShowDebtConfirmation(false);
-    processInvoice();
-  };
-
-  const handleDebtCancel = () => {
-    setShowDebtConfirmation(false);
-    setIsWaitingForConfirmation(false);
-    showNotification(
-      "info",
-      "Operación cancelada. Ajuste el monto de pago para continuar.",
-    );
-  };
-
   // Notificaciones
   const showNotification = (type, message) => {
     setNotification({ show: true, type, message });
     setTimeout(
       () => setNotification({ show: false, type: "", message: "" }),
-      10000,
+      3000,
     );
   };
 
@@ -484,21 +434,6 @@ export default function Billinvoices_Page() {
                 <span className="font-medium">{paymentMessage.message}</span>
               </div>
             </div>
-          )}
-
-          {/* Modal de Confirmación de Deuda */}
-          {showDebtConfirmation && (
-            <DebtConfirmationModal
-              isOpen={showDebtConfirmation}
-              onClose={handleDebtCancel}
-              onConfirm={handleDebtConfirmation}
-              client={selectedClient}
-              total={total}
-              amountPaid={amountPaid}
-              currency={paidCurrency}
-              exchangeRate={paymentExchangeRate}
-              isProcessing={isProcessing}
-            />
           )}
         </div>
       </div>

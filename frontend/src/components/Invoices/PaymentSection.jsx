@@ -92,7 +92,7 @@ export default function PaymentSection({
         </label>
         <div className="relative">
           {/* Símbolo dinámico dentro del input */}
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <span className="text-gray-500 font-bold text-lg">
               {currency.symbol}
             </span>
@@ -105,7 +105,7 @@ export default function PaymentSection({
             value={paidAmount}
             onChange={(e) => onPaidAmountChange(e.target.value)}
             // Padding izquierdo grande para acomodar simbolos largos como 'COP'
-            className="w-full pl-14 pr-4 py-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-50 focus:border-workshop-red outline-none font-black text-xl text-gray-900 placeholder-gray-300 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+            className="w-full pl-14 pr-4 py-4 bg-white border border-gray-200 rounded-xl focus:ring-4 focus:ring-red-50 focus:border-workshop-red outline-none font-black text-xl text-gray-900 placeholder-gray-300"
             placeholder="0.00"
           />
         </div>

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api_ = axios.create({
+const api = axios.create({
   // ⚠️ CAMBIO CRUCIAL:
   // Ya no usamos 'http://127.0.0.1:8001'.
   // Dejamos la baseURL vacía o apuntando al mismo origen para que use el proxy.
@@ -14,4 +14,4 @@ const api_ = axios.create({
   },
 });
 
-export default api_;
+export default api;

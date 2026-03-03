@@ -1,117 +1,130 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../../service/api_Authorization";
 import ProductModal from "./ProductModal";
-import ProductCard from "../../components/Inventory/ProductCard";
-import { Plus, Search, Filter, Package } from "lucide-react";
-import Pagination from "../../components/Inventory/Pagination";
+import {
+  Trash2,
+  Edit,
+  PackagePlus,
+  AlertTriangle,
+  CheckCircle2,
+  Search,
+  Box,
+  ChevronLeft,
+  ChevronRight,
+  XCircle,
+  Filter
+} from "lucide-react";
 
-const FILTER_OPTIONS = [
+const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
-  {
-    value: "disponible",
-    label: "Disponibles",
-    color: "text-green-700 bg-green-50 border-green-200",
-  },
-  {
-    value: "bajo_stock",
-    label: "Bajo Stock",
-    color: "text-orange-700 bg-orange-50 border-orange-200",
-  },
-  {
-    value: "agotado",
-    label: "Agotados",
-    color: "text-red-700 bg-red-50 border-red-200",
-  },
+  { value: "disponible", label: "Disponible" },
+  { value: "bajo_stock", label: "Bajo Stock" },
+  { value: "agotado", label: "Agotado" },
 ];
+
+function getStatusBadge(product) {
+  if (product.actual_stock === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[9px] font-black uppercase">
+        <XCircle size={11} /> Agotado
+      </span>
+    );
+  }
+  if (product.actual_stock <= product.min_stock) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-black uppercase">
+        <AlertTriangle size={11} /> Bajo Stock
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[9px] font-black uppercase">
+      <CheckCircle2 size={11} /> Disponible
+    </span>
+  );
+}
+
+function getStatusBadgeMobile(product) {
+  if (product.actual_stock === 0) {
+    return (
+      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-black uppercase">
+        <XCircle size={12} /> Agotado
+      </span>
+    );
+  }
+  const isLow = product.actual_stock <= product.min_stock;
+  return (
+    <span
+      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${isLow ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+    >
+      {isLow ? <AlertTriangle size={12} /> : <CheckCircle2 size={12} />}
+      Stock: {product.actual_stock}
+    </span>
+  );
+}
+
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
   const [error, setError] = useState(null);
-
-  // Paginación y Búsqueda
-  const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [page, setPage] = useState(1);
-  const [meta, setMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [filterName, setFilterName] = useState("");
+  const [filterStatus,setFilterStatus] = useState("");
+  const [page,setPage] = useState(1);
+  const [pagination,setPagination] = useState({
+    currentPage: 1,
+    lastPage: 1,
+    total:0,
+    perPage: 10
+  });
+  const PER_PAGE = 10;
 
-  const didInitSearch = useRef(false);
+  const fetchProducts = useCallback(
 
-  const fetchProducts = async (
-    query = "",
-    currentPage = 1,
-    currentStatus = "",
-    showMainLoader = false,
-  ) => {
-    if (showMainLoader) setLoading(true);
-    else setSearching(true);
+    async  (currentPage = page) => {
+      setLoading(true);
+      try{
+      const params = {page: currentPage, per_page: PER_PAGE};
+      if (filterName.trim()) params.name = filterName.trim();
+      if (filterStatus) params.status = filterStatus;
 
-    try {
-      const request = api.get("/products/inventory/filter", {
-        params: {
-          name: query.trim(),
-          status: currentStatus || undefined,
-          page: currentPage,
-          per_page: 16,
-        },
-      });
-
-      const { data } = await request;
+      const { data } = await api.get("/products/inventory/filter", { params });
 
       setProducts(data.data ?? []);
-      if (data.meta) setMeta(data.meta);
-      setError(null);
-    } catch (err) {
-      setError(
-        err.response?.status === 401
-          ? "Sesión expirada"
-          : "Error al cargar inventario",
-      );
-    } finally {
-      if (showMainLoader) setLoading(false);
-      setSearching(false);
-    }
-  };
+
+      setPagination({
+        currentPage: data.meta?.current_page ?? 1,
+        lastPage: data.meta?.last_page ?? 1,
+        total: data.meta?.total ?? 0,
+        perPage: data.meta?.per_page ?? PER_PAGE,
+      })
+
+      }catch{
+        setProducts([])
+      }finally{
+        setLoading(false)
+      }
+    },
+    [filterName,filterStatus,page]
+    
+  )
 
   useEffect(() => {
-    fetchProducts("", 1, "", true);
-  }, []);
+    fetchProducts(page);
+  }, [page, fetchProducts]);
 
   useEffect(() => {
-    if (!didInitSearch.current) {
-      didInitSearch.current = true;
-      return;
-    }
-    const timeout = setTimeout(() => {
-      setPage(1);
-      fetchProducts(searchText, 1, statusFilter, false);
-    }, 350);
-    return () => clearTimeout(timeout);
-  }, [searchText]);
-
-  const handleStatusChange = (newStatus) => {
-    setStatusFilter(newStatus);
     setPage(1);
-    fetchProducts(searchText, 1, newStatus, true);
-  };
 
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-    fetchProducts(searchText, newPage, statusFilter, true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [filterName,filterStatus]);
 
   const handleDelete = async (id) => {
-    if (
-      window.confirm("¿Estás seguro de eliminar este producto del inventario?")
-    ) {
+    if (window.confirm("¿Estás seguro de eliminar este producto?")) {
       try {
         await api.delete(`/products/${id}`);
-        fetchProducts(searchText, page, statusFilter, false);
+        fetchProducts(page)
       } catch (err) {
         alert("No se pudo eliminar: " + err.message);
       }
@@ -123,141 +136,250 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateStock = async (product, newStock) => {
-    try {
-      const payload = {
-        name: product.name,
-        description: product.description || "",
-        price: product.price,
-        min_stock: product.min_stock,
-        actual_stock: newStock,
-      };
 
-      await api.put(`/products/${product.id}`, payload);
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === product.id ? { ...p, actual_stock: newStock } : p,
-        ),
-      );
-    } catch (err) {
-      alert(
-        "Error al actualizar el stock: " +
-          (err.response?.data?.message || err.message),
-      );
-      fetchProducts(searchText, page, statusFilter, false);
-    }
-  };
+  const goPrev = () => setPage((p) => Math.max(1, p - 1));
+  const goNext = () => setPage((p) => Math.min(pagination.lastPage, p + 1));
 
-  if (loading && products.length === 0)
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-workshop-red"></div>
-      </div>
-    );
+  const startItem = (pagination.currentPage - 1) * pagination.perPage + 1;
+  const endItem = Math.min(
+    pagination.currentPage * pagination.perPage,
+    pagination.total,
+  );
 
-  return (
-    <div className="space-y-6">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+return (
+    <div className="space-y-4">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 uppercase">
-            Inventario de <span className="text-workshop-red">Productos</span>
+            Control de <span className="text-workshop-red">Inventario</span>
           </h2>
-          <p className="text-xs md:text-sm text-gray-500 font-medium">
-            Gestiona tu stock y precios.
+          <p className="text-xs md:text-sm text-gray-500 font-medium tracking-tight">
+            Gestión de repuestos y stock físico.
           </p>
         </div>
-
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 bg-workshop-dark text-white font-black px-6 py-4 sm:py-3 rounded-xl hover:bg-workshop-red transition-all shadow-lg shadow-red-900/10 uppercase text-xs md:text-sm tracking-tight w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-workshop-dark text-white font-black px-5 py-3 rounded-xl hover:bg-workshop-red transition-all shadow-lg uppercase text-xs tracking-widest w-full sm:w-auto"
         >
-          <Plus size={18} />
+          <PackagePlus size={18} />
           Nuevo Producto
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm font-bold text-red-600">
-          {error}
-        </div>
-      )}
-
-      {/* SEARCH & FILTER SECTION */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-4">
-        <div className="relative">
+      {/* FILTERS */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
           <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
           />
           <input
             type="text"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Buscar repuestos o inyectores..."
-            className="w-full h-12 pl-11 pr-10 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-workshop-red/20 focus:border-workshop-red font-medium text-sm"
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+            placeholder="Buscar por nombre..."
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:border-workshop-red focus:ring-2 focus:ring-red-500/10 outline-none transition-all"
           />
-          {searching && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-workshop-red border-t-transparent rounded-full animate-spin"></div>
-          )}
         </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sidebar-scrollbar">
-          <Filter size={16} className="text-gray-400 shrink-0 ml-1" />
-          {FILTER_OPTIONS.map((opt) => {
-            const isActive = statusFilter === opt.value;
-            const activeClasses = isActive
-              ? opt.color || "bg-gray-800 text-white border-gray-800"
-              : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50";
-
-            return (
-              <button
-                key={opt.value}
-                onClick={() => handleStatusChange(opt.value)}
-                className={`px-4 py-1.5 rounded-lg border text-xs font-black uppercase tracking-wider transition-colors shrink-0 ${activeClasses}`}
-              >
+        <div className="relative sm:w-48">
+          <Filter
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full appearance-none pl-8 pr-8 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 focus:border-workshop-red focus:ring-2 focus:ring-red-500/10 outline-none transition-all cursor-pointer"
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
                 {opt.label}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </select>
+          <ChevronRight
+            size={14}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90"
+          />
         </div>
       </div>
 
-      {/* GRID DE TARJETAS UTILIZANDO EL COMPONENTE SEPARADO */}
-      <div
-        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ${loading ? "opacity-50 pointer-events-none" : ""}`}
-      >
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            onEdit={openModal}
-            onDelete={handleDelete}
-            onUpdateStock={handleUpdateStock}
-          />
-        ))}
-      </div>
+      {/* LOADING */}
+      {loading && (
+        <div className="py-12 text-center font-black animate-pulse text-workshop-red uppercase tracking-widest text-sm">
+          Cargando...
+        </div>
+      )}
 
-      {/* COMPONENTE DE PAGINACIÓN */}
-      {!loading && products.length > 0 && meta.last_page > 1 && (
-        <Pagination
-          currentPage={meta.current_page}
-          lastPage={meta.last_page}
-          total={meta.total}
-          onPageChange={handlePageChange}
-        />
+      {/* CONTENT */}
+      {!loading && products.length > 0 && (
+        <>
+          {/* MOBILE LIST */}
+          <div className="grid grid-cols-1 gap-3 lg:hidden">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="max-w-[70%]">
+                    <h3 className="font-black text-gray-900 uppercase tracking-tight text-xs leading-tight">
+                      {product.name}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">
+                      {product.description || "Sin descripción"}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => openModal(product)}
+                      className="p-1.5 text-gray-400 bg-gray-50 rounded-lg"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="p-1.5 text-workshop-red bg-red-50 rounded-lg"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-gray-400 uppercase italic">
+                      Precio
+                    </span>
+                    <span className="font-black text-workshop-red text-base">
+                      ${Number(product.price).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-0.5">
+                    {getStatusBadgeMobile(product)}
+                    <span className="text-[9px] text-gray-400 font-bold">
+                      MÍN: {product.min_stock}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP TABLE */}
+          <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Producto
+                    </th>
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Precio
+                    </th>
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">
+                      Stock
+                    </th>
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      Estado
+                    </th>
+                    <th className="px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 font-bold">
+                  {products.map((product) => (
+                    <tr
+                      key={product.id}
+                      className="hover:bg-gray-50/50 transition-colors group"
+                    >
+                      <td className="px-4 py-2.5">
+                        <div className="font-black text-gray-900 uppercase text-xs tracking-tight">
+                          {product.name}
+                        </div>
+                        <div className="text-[10px] text-gray-400 truncate max-w-[200px]">
+                          {product.description || "Sin descripción"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-workshop-red text-sm font-black">
+                        ${Number(product.price).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span
+                          className={`text-xs font-black ${product.actual_stock === 0 ? "text-gray-400" : product.actual_stock <= product.min_stock ? "text-red-600" : "text-gray-900"}`}
+                        >
+                          {product.actual_stock}
+                        </span>
+                        <span className="text-[10px] text-gray-400 ml-1">
+                          / {product.min_stock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5">{getStatusBadge(product)}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <div className="flex justify-end gap-1">
+                          <button
+                            onClick={() => openModal(product)}
+                            className="p-1.5 text-gray-300 hover:text-workshop-dark hover:bg-gray-100 rounded-lg transition-all"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="p-1.5 text-gray-300 hover:text-workshop-red hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* PAGINATION */}
+          {pagination.lastPage > 1 && (
+            <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-2.5 shadow-sm">
+              <span className="text-xs text-gray-500 font-semibold">
+                {startItem}–{endItem} de {pagination.total}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={goPrev}
+                  disabled={page <= 1}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-workshop-dark disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="px-3 text-xs font-black text-gray-700">
+                  {pagination.currentPage} / {pagination.lastPage}
+                </span>
+                <button
+                  onClick={goNext}
+                  disabled={page >= pagination.lastPage}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-workshop-dark disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* EMPTY STATE */}
-      {products.length === 0 && !loading && (
-        <div className="bg-white p-12 rounded-2xl border border-gray-200 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
-            <Package size={32} />
+      {!loading && products.length === 0 && (
+        <div className="py-12 text-center bg-white rounded-2xl border border-dashed border-gray-300">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 text-gray-300 mb-3">
+            <Box size={28} />
           </div>
-          <p className="text-gray-500 font-bold uppercase tracking-tight">
-            {searchText || statusFilter
-              ? "No se encontraron productos con estos filtros."
-              : "El inventario está vacío."}
+          <p className="text-gray-500 font-black uppercase text-xs tracking-widest">
+            {filterName || filterStatus
+              ? "Sin resultados para los filtros aplicados"
+              : "No hay productos en inventario"}
           </p>
         </div>
       )}
@@ -268,7 +390,7 @@ export default function ProductsPage() {
           onClose={() => setIsModalOpen(false)}
           onSuccess={() => {
             setIsModalOpen(false);
-            fetchProducts(searchText, page, statusFilter, false);
+            fetchProducts(page);
           }}
         />
       )}

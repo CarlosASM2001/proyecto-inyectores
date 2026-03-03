@@ -41,7 +41,7 @@ class StoreToInvoiceRequest extends FormRequest
 
             'pagos' => ['required', 'array'],
             'pagos.amount' => ['required', 'numeric', 'min:0'],
-            'pagos.currency' => ['required', 'string', 'in:COP,USD,VES'],
+            'pagos.currency' => ['required', 'string', 'in:Pesos,Dolares,Bolivares'],
             'pagos.reference' => ['required', 'numeric', 'min:0'],
 
             'user_id' => ['required', 'integer', 'exists:users,id'],

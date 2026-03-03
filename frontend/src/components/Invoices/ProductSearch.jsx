@@ -255,7 +255,7 @@ export default function ProductSearch({
                 e.currentTarget.select();
               }}
               onChange={(e) => handleQuantityChange(e.target.value)}
-              className="w-16 text-center font-black text-lg text-gray-900 border-none outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+              className="w-16 text-center font-black text-lg text-gray-900 border-none outline-none"
               min="1"
               step="0.1"
             />

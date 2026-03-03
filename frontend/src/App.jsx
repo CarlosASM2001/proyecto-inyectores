@@ -17,7 +17,6 @@ import Billinvoices_Page from "./pages/Invoices/Billinvoices_Page";
 import DebtsPage from "./pages/Debts/DebtsPage";
 import SettingsPage from "./pages/Settings/SettingsPage";
 import PaymentsPage from "./pages/Payments/PaymentPage";
-import CreateRegisterClosePage from "./pages/RegisterClose/CreateRegisterClosePage";
 
 function App() {
   return (
@@ -38,7 +37,6 @@ function App() {
             <Route path="debts" element={<DebtsPage />} />
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
-            <Route path="creation_RegisterClose" element={<CreateRegisterClosePage />} />
           </Route>
         </Route>
 
