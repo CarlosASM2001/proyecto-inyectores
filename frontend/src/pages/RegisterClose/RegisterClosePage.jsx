@@ -54,6 +54,17 @@ export default function RegisterClosePage() {
     setIsModalOpen(true);
   };
 
+  const formatDate = (dateString) => {
+      if (!dateString) return "—";
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC' 
+      }).replace('.', ''); 
+  };
+
   if (loading) return (
     <div className="p-10 text-center font-black animate-pulse text-workshop-red tracking-widest">
       SINCRONIZANDO FLUJO DE CAJA...
@@ -123,7 +134,7 @@ export default function RegisterClosePage() {
         {registerCloses.map((rc) => (
           <div key={rc.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="p-5 border-b border-gray-50 flex justify-between items-center">
-              <span className="font-black text-gray-900 italic">{rc.date}</span>
+              <span className="font-black text-gray-900 italic">{formatDate(rc.date)}</span>
               <div className="flex gap-2">
                 <button onClick={() => openModal(rc)} className="p-2 text-gray-400 bg-gray-50 rounded-lg"><Edit size={16}/></button>
                 <button onClick={() => handleDelete(rc.id)} className="p-2 text-workshop-red bg-red-50 rounded-lg"><Trash2 size={16}/></button>
@@ -168,7 +179,7 @@ export default function RegisterClosePage() {
             <tbody className="divide-y divide-gray-100 font-bold italic">
               {registerCloses.map((rc) => (
                 <tr key={rc.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4 text-sm text-gray-900">{rc.date}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(rc.date)}</td>
                   <td className="px-6 py-4 text-sm text-green-700 font-black">${Number(rc.COP_amount).toLocaleString()}</td>
                   <td className="px-6 py-4 text-sm text-amber-700 font-black">${Number(rc.USD_amount).toLocaleString()}</td>
                   <td className="px-6 py-4 text-sm text-amber-700 font-black">${Number(rc.VES_amount).toLocaleString()}</td>
