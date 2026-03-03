@@ -83,6 +83,14 @@ export default function CreateRegisterClose({ onSuccess }) {
                         )}
                     </div>
 
+                    {errors.date && (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl flex items-center justify-between animate-in slide-in-from-top-2">
+                            <p className="font-bold text-sm uppercase tracking-tight text-workshop-red">
+                                <AlertCircle size={12} /> {errors.date[0]}
+                            </p>
+                        </div>
+                    )}
+
                     {/* Botón de Acción */}
                     <div className="pt-4">
                         <button 
