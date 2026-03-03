@@ -13,40 +13,22 @@ import {
   X,
   Settings,
   BadgeDollarSign,
+  Banknote  
 } from "lucide-react";
 
 export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
   const navItems = [
-    {
-      label: "Panel General",
-      path: "/dashboard",
-      icon: <LayoutDashboard size={20} />,
-    },
-    {
-      label: "Facturar",
-      path: "/invoices_Bill",
-      icon: <CreditCard size={18} />,
-    },
+    { label: "Panel General", path: "/dashboard", icon: <LayoutDashboard size={20} />,},
+    { label: "Facturar", path: "/invoices_Bill", icon: <CreditCard size={18} />,},
     { label: "Clientes", path: "/clients", icon: <Users size={20} /> },
     { label: "Inventario", path: "/products", icon: <Package size={20} /> },
     { label: "Servicios", path: "/services", icon: <Wrench size={20} /> },
-    {
-      label: "Historial Facturas",
-      path: "/invoices",
-      icon: <FileText size={20} />,
-    },
-    {
-      label: "Cierre de Caja",
-      path: "/registerClose",
-      icon: <Wallet size={20} />,
-    },
+    { label: "Historial Facturas", path: "/invoices", icon: <FileText size={20} />,},
+    { label: "Cierre de Caja", path: "/registerClose", icon: <Wallet size={20} />,},
     { label: "Deudas", path: "/debts", icon: <HandCoins size={20} /> },
     { label: "Pagos", path: "/payments", icon: <BadgeDollarSign size={20} /> },
-    {
-      label: "Configuraciones",
-      path: "/settings",
-      icon: <Settings size={20} />,
-    },
+    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />,},
+    { label: "Crear Cierre de Caja", path: "/creation_RegisterClose", icon: <Banknote  size={20} />,},
   ];
 
   return (

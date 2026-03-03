@@ -22,8 +22,17 @@ class StoreCreateRegisterCloseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => ['required', 'date', 'date_equals:today' . now()->format('Y-m-d')],
+            'date' => ['required', 'date', 'after_or_equal:today', 'before_or_equal:today', 'unique:register_close,date'],
             'description' => ['nullable', 'string', 'max:1000']
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'date.unique' => 'Ya se creo un cierre de caja para esta fecha',
+            'date.after_or_equal' => 'La fecha debe ser hoy',
+            'date.before_or_equal' => 'La fecha debe ser hoy',
         ];
     }
 }
