@@ -27,8 +27,8 @@ export default function Sidebar({ onLogout, isOpen, setIsOpen }) {
     { label: "Cierre de Caja", path: "/registerClose", icon: <Wallet size={20} />,},
     { label: "Deudas", path: "/debts", icon: <HandCoins size={20} /> },
     { label: "Pagos", path: "/payments", icon: <BadgeDollarSign size={20} /> },
-    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />,},
     { label: "Crear Cierre de Caja", path: "/creation_RegisterClose", icon: <Banknote  size={20} />,},
+    { label: "Configuraciones", path: "/settings", icon: <Settings size={20} />,},
   ];
 
   return (
