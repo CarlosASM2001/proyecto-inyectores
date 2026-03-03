@@ -34,7 +34,7 @@ class InvoiceController extends Controller
     public function store(StoreInvoiceRequest $request)
     {
         $invoice = Invoice::create($request->validated());
-        
+
         return new InvoiceResource($invoice);
     }
 
@@ -145,7 +145,7 @@ class InvoiceController extends Controller
                 }
 
                 // 6. Handle debt if payment is less than total
-                if (($totalInCOP - $paymentInCOP) > 0.9) {
+                if (($totalInCOP - $paymentInCOP) > 0.09) {
                     // Convert all amounts to COP for debt calculation
                     $debtAmount = $totalInCOP - $paymentInCOP;
 
@@ -181,6 +181,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
+        $invoice->load(['Client', 'Products', 'Services', 'Payment', 'Debt']);
         return new InvoiceResource($invoice);
     }
 

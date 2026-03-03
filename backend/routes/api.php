@@ -30,6 +30,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // RUTAS PRIVADAS
 // --------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/Status', [AuthController::class, 'Status']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
@@ -75,4 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Rutas de pagos
     Route::post('/paymentClient', [PaymentController::class, 'paymentClient']);
+
+    //Ruta creacion de cierre de caja
+    Route::post('/createRegisterClose', [RegisterCloseController::class, 'createRegisterClose']);
 });

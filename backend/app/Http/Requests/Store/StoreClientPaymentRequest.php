@@ -23,7 +23,7 @@ class StoreClientPaymentRequest extends FormRequest
     {
         return [
             'date' => ['date', 'required'],
-            'amount' => ['numeric', 'required'],
+            'amount' => ['numeric', 'required', 'min:0'],
             'currency' => ['string', 'required', 'min:3'],
             'reference' => ['numeric', 'required', 'min:0'],
             'description' => ['string', 'required', 'max:255'],
